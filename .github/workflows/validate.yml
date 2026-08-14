@@ -57,7 +57,7 @@ jobs:
                   sys.exit(f"{path}: channel must be stable|incubating, got {m.group(1)}")
               if key == "version" and not re.fullmatch(r"\d+\.\d+\.\d+.*", m.group(1)):
                   sys.exit(f"{path}: version must be SemVer, got {m.group(1)}")
-EOF
+          EOF
           python3 - <<EOF
           import glob, sys, yaml
           try:
@@ -65,7 +65,7 @@ EOF
                   yaml.safe_load(open(f))
           except yaml.YAMLError as e:
               sys.exit(f"invalid YAML: {e}")
-EOF
+          EOF
           done
           # TODO(M2-W1): kro/CEL type-check, helm lint, OPA/Rego tests per package.
           exit "$failed"
