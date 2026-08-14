@@ -27,6 +27,9 @@ jobs:
       - name: Install PyYAML
         run: pip install pyyaml
 
+      - name: Test release-please config sync
+        run: python3 scripts/test-sync-release-please-config.py
+
       - name: Validate package structure
         run: |
           set -euo pipefail
@@ -42,7 +45,7 @@ jobs:
               failed=1
               continue
             fi
-            python3 - "$pkg/package.yaml" <<'EOF'
+          python3 - "$pkg/package.yaml" <<'EOF'
           import re, sys
           path = sys.argv[1]
           text = open(path).read()
@@ -54,10 +57,15 @@ jobs:
                   sys.exit(f"{path}: channel must be stable|incubating, got {m.group(1)}")
               if key == "version" and not re.fullmatch(r"\d+\.\d+\.\d+.*", m.group(1)):
                   sys.exit(f"{path}: version must be SemVer, got {m.group(1)}")
-          EOF
-            python3 -c "import sys,yaml,glob
-          [yaml.safe_load(open(f)) for f in glob.glob('$pkg/**/*.yaml', recursive=True)]" \
-              || { echo "::error::invalid YAML under $pkg"; failed=1; }
+EOF
+          python3 - <<EOF
+          import glob, sys, yaml
+          try:
+              for f in glob.glob("$pkg/**/*.yaml", recursive=True):
+                  yaml.safe_load(open(f))
+          except yaml.YAMLError as e:
+              sys.exit(f"invalid YAML: {e}")
+EOF
           done
           # TODO(M2-W1): kro/CEL type-check, helm lint, OPA/Rego tests per package.
           exit "$failed"

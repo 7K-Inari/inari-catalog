@@ -21,16 +21,22 @@ PACKAGE_DEFAULTS = {
 }
 
 
-def main() -> int:
-    config = json.loads(CONFIG.read_text())
-    packages_dir = ROOT / "packages"
+def sync(root: Path) -> list[str]:
+    config_path = root / "release-please-config.json"
+    config = json.loads(config_path.read_text())
+    packages_dir = root / "packages"
     components = {}
     if packages_dir.is_dir():
         for child in sorted(packages_dir.iterdir()):
             if child.is_dir() and (child / "package.yaml").is_file():
                 components[f"packages/{child.name}"] = dict(PACKAGE_DEFAULTS)
     config["packages"] = components
-    CONFIG.write_text(json.dumps(config, indent=2) + "\n")
+    config_path.write_text(json.dumps(config, indent=2) + "\n")
+    return sorted(components)
+
+
+def main() -> int:
+    components = sync(ROOT)
     print(f"configured {len(components)} package component(s): {', '.join(components) or '(none)'}")
     return 0
 
