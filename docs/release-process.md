@@ -48,7 +48,9 @@ channel: incubating   # stable | incubating; default incubating if absent
 
 `sync-release-please-config.py` picks up every `packages/<name>/` with a
 `package.yaml` automatically — no manual edits to
-`release-please-config.json` are needed. The `validate.yml` workflow (a
+`release-please-config.json` are needed (`release-please.yml` commits the
+regenerated config back to `main`, since the action reads config from the
+repository, not the job's working tree). The `validate.yml` workflow (a
 required status check) enforces this structure and will gain KRO/CEL
 type-checks, `helm lint`, and OPA/Rego tests in M2-W1.
 

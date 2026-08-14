@@ -32,6 +32,11 @@ jobs:
         run: |
           set -euo pipefail
           msg="$(git log -1 --pretty=%s)"
+          # A true merge commit's subject is "Merge pull request #N ..."; the
+          # release-please title lives on the PR head (second parent).
+          if [ "$(git rev-list --parents -n1 HEAD | wc -w)" -gt 2 ]; then
+            msg="$(git log -1 --pretty=%s HEAD^2)"
+          fi
           # Release PR merges use pull-request-title-pattern:
           # "chore: release <component> <version>" (or "... main" for multi).
           case "$msg" in
