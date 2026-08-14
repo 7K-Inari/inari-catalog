@@ -1,0 +1,42 @@
+name: release-please
+
+# PR-only mode: opens/updates a single Release PR with per-package version
+# bumps and CHANGELOG entries. Never creates tags or GitHub Releases —
+# that happens in release.yml after the Release PR is manually merged.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "scripts/sync-release-please-config.py"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      # release-please has no glob support for manifest components, so
+      # regenerate package entries from packages/<name>/ at runtime.
+      - name: Sync package components
+        run: python3 scripts/sync-release-please-config.py
+
+      # RELEASE_PLEASE_TOKEN must be a GitHub App (or PAT) token: Release PRs
+      # created with the default GITHUB_TOKEN do not fire push events on
+      # merge, which would prevent release.yml from running.
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

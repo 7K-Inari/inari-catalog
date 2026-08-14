@@ -1,0 +1,63 @@
+name: validate
+
+# Required status check for all package changes. Full validation (YAML lint,
+# KRO/CEL type-check, helm lint, OPA/Rego tests) lands with the M2-W1
+# packages/ layout; until then this is a structural check that keeps the
+# branch-protection wiring in place.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Validate package structure
+        run: |
+          set -euo pipefail
+          if [ ! -d packages ]; then
+            echo "packages/ layout not present yet (lands in M2-W1) — structural check passes"
+            exit 0
+          fi
+          failed=0
+          for pkg in packages/*/; do
+            [ -d "$pkg" ] || continue
+            if [ ! -f "$pkg/package.yaml" ]; then
+              echo "::error::$pkg is missing package.yaml (required: version, channel)"
+              failed=1
+              continue
+            fi
+            python3 - "$pkg/package.yaml" <<'EOF'
+          import re, sys
+          path = sys.argv[1]
+          text = open(path).read()
+          for key in ("version", "channel"):
+              m = re.search(rf"^{key}:\s*(\S+)", text, re.M)
+              if not m:
+                  sys.exit(f"{path}: missing '{key}'")
+              if key == "channel" and m.group(1) not in ("stable", "incubating"):
+                  sys.exit(f"{path}: channel must be stable|incubating, got {m.group(1)}")
+              if key == "version" and not re.fullmatch(r"\d+\.\d+\.\d+.*", m.group(1)):
+                  sys.exit(f"{path}: version must be SemVer, got {m.group(1)}")
+          EOF
+            python3 -c "import sys,yaml,glob
+          [yaml.safe_load(open(f)) for f in glob.glob('$pkg/**/*.yaml', recursive=True)]" \
+              || { echo "::error::invalid YAML under $pkg"; failed=1; }
+          done
+          # TODO(M2-W1): kro/CEL type-check, helm lint, OPA/Rego tests per package.
+          exit "$failed"
