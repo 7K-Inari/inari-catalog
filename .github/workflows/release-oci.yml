@@ -1,0 +1,63 @@
+name: release-oci
+
+# Reusable workflow: package one catalog package as an OCI artifact, push it
+# to GHCR with version and channel tags, and cosign-sign it (keyless OIDC).
+# Invoked ONLY from release.yml via workflow_call — never on tag pushes.
+
+on:
+  workflow_call:
+    inputs:
+      package:
+        required: true
+        type: string
+      version:
+        required: true
+        type: string
+      channel:
+        required: true
+        type: string
+        description: stable | incubating
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/7k-inari/catalog
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: sigstore/cosign-installer@v3
+
+      - uses: oras-project/setup-oras@v1
+
+      - name: Package and push OCI artifact
+        id: push
+        env:
+          ORAS_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          pkg_dir="packages/${{ inputs.package }}"
+          [ -d "$pkg_dir" ] || { echo "::error::package directory $pkg_dir not found (M2-W1 layout pending)"; exit 1; }
+          echo "$ORAS_PASSWORD" | oras login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+          repo="${IMAGE_PREFIX}/${{ inputs.package }}"
+          digest="$(oras push "${repo}:${{ inputs.version }}" \
+            --artifact-type application/vnd.inari.catalog.package.v1+yaml \
+            "$pkg_dir" | tee /dev/stderr | grep -oP 'Digest: \K\S+')"
+          oras tag "${repo}@${digest}" "${{ inputs.version }}" "${{ inputs.channel }}"
+          echo "ref=${repo}@${digest}" >> "$GITHUB_OUTPUT"
+
+      - name: Cosign sign (keyless)
+        run: cosign sign --yes "${{ steps.push.outputs.ref }}"
+
+      - name: Cosign verify smoke check
+        run: |
+          cosign verify "${{ steps.push.outputs.ref }}" \
+            --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}/"

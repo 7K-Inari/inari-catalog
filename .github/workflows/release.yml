@@ -1,0 +1,106 @@
+name: release
+
+# Runs after a Release PR (opened by release-please.yml) is manually merged.
+# Creates per-package tags (<name>-vX.Y.Z) and GitHub Releases, then fans out
+# to cosign-signed OCI publish jobs via workflow_call. There are intentionally
+# NO tag-push triggers anywhere in this repo: publishing is gated on this
+# merge-detection flow only.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      releases: ${{ steps.bumps.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect release merge and bumped packages
+        id: bumps
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          msg="$(git log -1 --pretty=%s)"
+          # A true merge commit's subject is "Merge pull request #N ..."; the
+          # release-please title lives on the PR head (second parent).
+          if [ "$(git rev-list --parents -n1 HEAD | wc -w)" -gt 2 ]; then
+            msg="$(git log -1 --pretty=%s HEAD^2)"
+          fi
+          # Release PR merges use pull-request-title-pattern:
+          # "chore: release <component> <version>" (or "... main" for multi).
+          case "$msg" in
+            "chore: release"*) ;;
+            *) echo "not a release merge ($msg) — skipping"; echo 'releases=[]' >> "$GITHUB_OUTPUT"; exit 0;;
+          esac
+
+          releases="[]"
+          # Bumped packages = package.yaml files whose version line changed in
+          # the release merge commit.
+          for f in $(git diff --name-only HEAD~1 HEAD -- 'packages/*/package.yaml'); do
+            name="$(basename "$(dirname "$f")")"
+            version="$(git show "HEAD:$f" | sed -n 's/^version:[[:space:]]*//p' | tr -d '"'"'")"
+            [ -n "$version" ] || { echo "no version in $f" >&2; exit 1; }
+            channel="$(git show "HEAD:$f" | sed -n 's/^channel:[[:space:]]*//p' | tr -d '"'"'")"
+            channel="${channel:-incubating}"
+            releases="$(jq -c \
+              --arg name "$name" --arg version "$version" --arg channel "$channel" \
+              '. + [{name: $name, version: $version, channel: $channel}]' <<< "$releases")"
+          done
+          echo "bumped: $releases"
+          echo "releases=$releases" >> "$GITHUB_OUTPUT"
+
+  tag-and-release:
+    needs: detect
+    if: needs.detect.outputs.releases != '[]'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASES: ${{ needs.detect.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create per-package tags and GitHub Releases
+        run: |
+          set -euo pipefail
+          echo "$RELEASES" | jq -c '.[]' | while read -r rel; do
+            name="$(jq -r .name <<< "$rel")"
+            version="$(jq -r .version <<< "$rel")"
+            tag="${name}-v${version}"
+            notes_file="$(mktemp)"
+            # Extract this version's section from the package CHANGELOG.
+            awk -v v="$version" '
+              $0 ~ "^## .*" v { found=1; next }
+              found && /^## / { exit }
+              found { print }
+            ' "packages/$name/CHANGELOG.md" > "$notes_file" || true
+            [ -s "$notes_file" ] || echo "Release $tag" > "$notes_file"
+            git tag -a "$tag" -m "$tag"
+            git push origin "$tag"
+            gh release create "$tag" --title "$tag" --notes-file "$notes_file"
+            rm -f "$notes_file"
+          done
+
+  publish-oci:
+    needs: [detect, tag-and-release]
+    if: needs.detect.outputs.releases != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ${{ fromJSON(needs.detect.outputs.releases) }}
+    uses: ./.github/workflows/release-oci.yml
+    secrets: inherit
+    with:
+      package: ${{ matrix.release.name }}
+      version: ${{ matrix.release.version }}
+      channel: ${{ matrix.release.channel }}
