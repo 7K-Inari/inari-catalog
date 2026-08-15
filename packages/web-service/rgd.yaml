@@ -1,0 +1,108 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: web-service
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: WebService
+    spec:
+      name: string
+      namespace: string | default="default"
+      image: string
+      replicas: integer | default=2
+      port: integer | default=8080
+      host: string
+      ingressClassName: string | default="nginx"
+      clusterIssuer: string | default="letsencrypt-prod"
+      externalDnsHostname: string | default=""
+      cpuRequest: string | default="100m"
+      memoryRequest: string | default="128Mi"
+      cpuLimit: string | default="500m"
+      memoryLimit: string | default="512Mi"
+    status:
+      url: string
+      ready: boolean
+  resources:
+    - id: deployment
+      template:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+        spec:
+          replicas: ${schema.spec.replicas}
+          selector:
+            matchLabels:
+              app: ${schema.spec.name}
+          template:
+            metadata:
+              labels:
+                app: ${schema.spec.name}
+            spec:
+              containers:
+                - name: app
+                  image: ${schema.spec.image}
+                  ports:
+                    - containerPort: ${schema.spec.port}
+                  resources:
+                    requests:
+                      cpu: ${schema.spec.cpuRequest}
+                      memory: ${schema.spec.memoryRequest}
+                    limits:
+                      cpu: ${schema.spec.cpuLimit}
+                      memory: ${schema.spec.memoryLimit}
+    - id: service
+      template:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+        spec:
+          selector:
+            app: ${schema.spec.name}
+          ports:
+            - port: 80
+              targetPort: ${schema.spec.port}
+    - id: certificate
+      template:
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: ${schema.spec.name}-tls
+          namespace: ${schema.spec.namespace}
+        spec:
+          secretName: ${schema.spec.name}-tls
+          dnsNames:
+            - ${schema.spec.host}
+          issuerRef:
+            kind: ClusterIssuer
+            name: ${schema.spec.clusterIssuer}
+    - id: ingress
+      template:
+        apiVersion: networking.k8s.io/v1
+        kind: Ingress
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+          annotations:
+            external-dns.alpha.kubernetes.io/hostname: ${has(schema.spec.externalDnsHostname) && schema.spec.externalDnsHostname != "" ? schema.spec.externalDnsHostname : schema.spec.host}
+        spec:
+          ingressClassName: ${schema.spec.ingressClassName}
+          tls:
+            - hosts:
+                - ${schema.spec.host}
+              secretName: ${schema.spec.name}-tls
+          rules:
+            - host: ${schema.spec.host}
+              http:
+                paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                      service:
+                        name: ${schema.spec.name}
+                        port:
+                          number: 80
