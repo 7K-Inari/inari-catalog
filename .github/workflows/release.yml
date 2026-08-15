@@ -73,6 +73,8 @@ jobs:
       - name: Create per-package tags and GitHub Releases
         run: |
           set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           echo "$RELEASES" | jq -c '.[]' | while read -r rel; do
             name="$(jq -r .name <<< "$rel")"
             version="$(jq -r .version <<< "$rel")"

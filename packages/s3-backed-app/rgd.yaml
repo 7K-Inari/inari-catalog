@@ -24,7 +24,7 @@ spec:
         apiVersion: s3.aws.upbound.io/v1beta1
         kind: Bucket
         metadata:
-          name: ${schema.spec.name}
+          name: ${schema.spec.bucketPrefix != "" ? schema.spec.bucketPrefix + "-" + schema.spec.name : schema.spec.name}
         spec:
           forProvider:
             region: ${schema.spec.region}
@@ -57,7 +57,7 @@ spec:
                     - containerPort: ${schema.spec.port}
                   env:
                     - name: BUCKET_NAME
-                      value: ${schema.spec.name}
+                      value: ${bucket.metadata.name}
                     - name: AWS_REGION
                       value: ${schema.spec.region}
     - id: service

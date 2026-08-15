@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch origin main --depth=1
-            changed=$(git diff --name-only origin/main...HEAD -- packages | cut -d/ -f2 | sort -u)
+            changed=$(git diff --name-only origin/main HEAD -- packages | cut -d/ -f2 | sort -u)
           else
             changed=$(ls packages)
           fi

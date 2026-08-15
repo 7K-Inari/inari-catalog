@@ -18,13 +18,14 @@ kubectl apply -f tests/instance-full.yaml
 
 for i in $(seq 1 30); do
   kubectl get bucket.s3.aws.upbound.io minimal-s3 >/dev/null 2>&1 && \
-  kubectl get bucket.s3.aws.upbound.io full-s3 >/dev/null 2>&1 && break
+  kubectl get bucket.s3.aws.upbound.io acme-full-s3 >/dev/null 2>&1 && break
   sleep 2
 done
 kubectl get bucket.s3.aws.upbound.io minimal-s3
-kubectl get bucket.s3.aws.upbound.io full-s3
+kubectl get bucket.s3.aws.upbound.io acme-full-s3
 kubectl get deployment minimal-s3
 kubectl get service minimal-s3
 kubectl get deployment full-s3
-kubectl get bucket.s3.aws.upbound.io full-s3 -o jsonpath='{.spec.forProvider.region}' | grep -q eu-west-1
+kubectl get bucket.s3.aws.upbound.io acme-full-s3 -o jsonpath='{.spec.forProvider.region}' | grep -q eu-west-1
+kubectl get deployment full-s3 -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="BUCKET_NAME")].value}' | grep -q acme-full-s3
 echo "s3-backed-app: OK"
