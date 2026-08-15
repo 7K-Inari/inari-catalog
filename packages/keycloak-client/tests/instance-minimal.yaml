@@ -1,0 +1,9 @@
+apiVersion: kro.run/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: minimal
+spec:
+  name: minimal-client
+  realm: acme
+  redirectUris:
+    - https://minimal.example.test/callback

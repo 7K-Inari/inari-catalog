@@ -1,0 +1,38 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: web-service
+groups:
+  - name: Workload
+    fields: [name, namespace, image, replicas, port]
+  - name: Networking
+    fields: [host, ingressClassName, externalDnsHostname]
+  - name: TLS
+    fields: [clusterIssuer]
+  - name: Resources
+    fields: [cpuRequest, memoryRequest, cpuLimit, memoryLimit]
+fields:
+  name:
+    widget: text
+    help: Name for the Deployment, Service, and Ingress.
+  namespace:
+    widget: namespacePicker
+    help: Target namespace.
+  image:
+    widget: imagePicker
+    help: Container image, e.g. ghcr.io/acme/app:1.2.3.
+  replicas:
+    widget: number
+  port:
+    widget: number
+    help: Container port the app listens on.
+  host:
+    widget: hostname
+    help: Public hostname; gets a DNS record and a TLS certificate.
+  ingressClassName:
+    widget: text
+  externalDnsHostname:
+    widget: hostname
+    help: Optional override for the DNS record ExternalDNS publishes.
+  clusterIssuer:
+    widget: text
+    help: cert-manager ClusterIssuer used for the TLS certificate.

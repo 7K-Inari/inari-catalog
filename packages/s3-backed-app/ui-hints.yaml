@@ -1,0 +1,28 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: s3-backed-app
+groups:
+  - name: Workload
+    fields: [name, namespace, image, replicas, port]
+  - name: Storage
+    fields: [bucketPrefix, region, bucketVersioning]
+fields:
+  name:
+    widget: text
+  namespace:
+    widget: namespacePicker
+  image:
+    widget: imagePicker
+  replicas:
+    widget: number
+  port:
+    widget: number
+  bucketPrefix:
+    widget: text
+    help: Optional prefix used when naming the bucket.
+  region:
+    widget: select
+    options: [us-east-1, us-west-2, eu-west-1, eu-central-1]
+  bucketVersioning:
+    widget: checkbox
+    help: Enable S3 object versioning.

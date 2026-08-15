@@ -1,0 +1,40 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: postgresql-aws-basic
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: PostgresAWS
+    spec:
+      name: string | required=true
+      namespace: string | default="default"
+      region: string | default="us-east-1"
+      engineVersion: string | default="16"
+      instanceClass: string | default="db.t3.micro"
+      allocatedStorage: integer | default=20
+      databaseName: string | default="app"
+      publiclyAccessible: boolean | default=false
+    status:
+      endpoint: string
+      ready: boolean
+  resources:
+    - id: dbInstance
+      template:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: Instance
+        metadata:
+          name: ${schema.spec.name}
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            engine: postgres
+            engineVersion: ${schema.spec.engineVersion}
+            instanceClass: ${schema.spec.instanceClass}
+            allocatedStorage: ${string(schema.spec.allocatedStorage)}
+            dbName: ${schema.spec.databaseName}
+            publiclyAccessible: ${schema.spec.publiclyAccessible}
+            skipFinalSnapshot: true
+          writeConnectionSecretToRef:
+            name: ${schema.spec.name}-conn
+            namespace: ${schema.spec.namespace}

@@ -1,0 +1,29 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: keycloak-client
+groups:
+  - name: Identity
+    fields: [name, namespace, realm, clientId]
+  - name: OIDC
+    fields: [redirectUris, publicClient, serviceAccountsEnabled]
+fields:
+  name:
+    widget: text
+  namespace:
+    widget: namespacePicker
+    help: Namespace receiving the client-credentials Secret.
+  realm:
+    widget: text
+    help: Keycloak realm that owns this client.
+  clientId:
+    widget: text
+    help: Optional explicit client ID; defaults to `name`.
+  redirectUris:
+    widget: list
+    help: Valid redirect URIs for the OIDC flow.
+  publicClient:
+    widget: checkbox
+    help: Public client (no secret) — for browser/CLI apps.
+  serviceAccountsEnabled:
+    widget: checkbox
+    help: Enable the client-credentials (service account) grant.

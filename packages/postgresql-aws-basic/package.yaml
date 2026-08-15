@@ -1,0 +1,4 @@
+version: 0.1.0
+channel: incubating
+description: Basic AWS RDS PostgreSQL instance via Crossplane (stub wired for M3 Crossplane work).
+category: data

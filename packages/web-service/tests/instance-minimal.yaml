@@ -1,0 +1,8 @@
+apiVersion: kro.run/v1alpha1
+kind: WebService
+metadata:
+  name: minimal
+spec:
+  name: minimal-web
+  image: nginx:1.27
+  host: minimal.example.test

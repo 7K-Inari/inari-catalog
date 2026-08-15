@@ -1,0 +1,32 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: postgresql-aws-basic
+groups:
+  - name: Identity
+    fields: [name, namespace]
+  - name: Database
+    fields: [region, engineVersion, instanceClass, allocatedStorage, databaseName]
+  - name: Network
+    fields: [publiclyAccessible]
+fields:
+  name:
+    widget: text
+  namespace:
+    widget: namespacePicker
+  region:
+    widget: select
+    options: [us-east-1, us-west-2, eu-west-1, eu-central-1]
+  engineVersion:
+    widget: select
+    options: ["14", "15", "16"]
+  instanceClass:
+    widget: select
+    options: [db.t3.micro, db.t3.small, db.t3.medium]
+  allocatedStorage:
+    widget: number
+    help: GiB of storage.
+  databaseName:
+    widget: text
+  publiclyAccessible:
+    widget: checkbox
+    help: Exposes the database publicly — normally leave disabled.

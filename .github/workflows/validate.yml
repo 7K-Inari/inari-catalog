@@ -30,6 +30,17 @@ jobs:
       - name: Test release-please config sync
         run: python3 scripts/test-sync-release-please-config.py
 
+      - name: Test catalog index generator
+        run: python3 scripts/test-build-catalog-index.py
+
+      - name: Validate RGD structure
+        run: python3 scripts/validate-rgd.py
+
+      - name: Validate catalog.yaml is in sync
+        run: |
+          python3 scripts/build-catalog-index.py
+          git diff --exit-code catalog.yaml
+
       - name: Validate package structure
         run: |
           set -euo pipefail
@@ -67,5 +78,4 @@ jobs:
               sys.exit(f"invalid YAML: {e}")
           EOF
           done
-          # TODO(M2-W1): kro/CEL type-check, helm lint, OPA/Rego tests per package.
           exit "$failed"

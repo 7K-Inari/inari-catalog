@@ -1,0 +1,35 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: namespace-as-a-service
+groups:
+  - name: Identity
+    fields: [name, team, labels]
+  - name: Quotas
+    fields: [cpuLimit, memoryLimit, maxPods]
+  - name: Access
+    fields: [adminGroup, viewerGroup]
+fields:
+  name:
+    widget: text
+    help: Name of the namespace to create. Must be DNS-1123 compliant.
+  team:
+    widget: text
+    help: Owning team/tenant identifier; stamped as the inari.dev/tenant label.
+  labels:
+    widget: keyValuePairs
+    help: Extra labels applied to the namespace.
+  cpuLimit:
+    widget: text
+    help: Namespace-wide CPU limit ceiling (ResourceQuota).
+  memoryLimit:
+    widget: text
+    help: Namespace-wide memory limit ceiling (ResourceQuota).
+  maxPods:
+    widget: number
+    help: Maximum number of pods in the namespace.
+  adminGroup:
+    widget: groupPicker
+    help: Keycloak group bound to the edit ClusterRole in this namespace.
+  viewerGroup:
+    widget: groupPicker
+    help: Keycloak group bound to the view ClusterRole in this namespace.

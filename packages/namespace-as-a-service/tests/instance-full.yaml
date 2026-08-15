@@ -1,0 +1,14 @@
+apiVersion: kro.run/v1alpha1
+kind: TenantNamespace
+metadata:
+  name: full
+spec:
+  name: team-full
+  team: acme-full
+  labels:
+    environment: dev
+  cpuLimit: "8"
+  memoryLimit: 16Gi
+  maxPods: 100
+  adminGroup: tenant-acme/full-admins
+  viewerGroup: tenant-acme/full-viewers
