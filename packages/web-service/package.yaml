@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 1.0.0
 channel: stable
 description: Web service with ingress, automatic DNS (ExternalDNS) and TLS (cert-manager).
 category: application
