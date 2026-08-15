@@ -1,0 +1,4 @@
+version: 0.1.0
+channel: stable
+description: Self-service tenant namespace with quotas, defaults, and team RBAC.
+category: foundations

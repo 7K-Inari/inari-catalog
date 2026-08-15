@@ -1,0 +1,92 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: namespace-as-a-service
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: TenantNamespace
+    spec:
+      name: string
+      team: string
+      labels: map[string]string | default={}
+      cpuLimit: string | default="4"
+      memoryLimit: string | default="8Gi"
+      maxPods: integer | default=50
+      adminGroup: string | default=""
+      viewerGroup: string | default=""
+    status:
+      namespace: string
+      ready: boolean
+  resources:
+    - id: namespace
+      template:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: ${schema.spec.name}
+          labels:
+            inari.dev/tenant: ${schema.spec.team}
+            inari.dev/managed-by: inari-catalog
+    - id: quota
+      template:
+        apiVersion: v1
+        kind: ResourceQuota
+        metadata:
+          name: ${schema.spec.name}-quota
+          namespace: ${namespace.metadata.name}
+        spec:
+          hard:
+            limits.cpu: ${schema.spec.cpuLimit}
+            limits.memory: ${schema.spec.memoryLimit}
+            pods: ${string(schema.spec.maxPods)}
+    - id: limitrange
+      template:
+        apiVersion: v1
+        kind: LimitRange
+        metadata:
+          name: ${schema.spec.name}-defaults
+          namespace: ${namespace.metadata.name}
+        spec:
+          limits:
+            - type: Container
+              defaultRequest:
+                cpu: 100m
+                memory: 128Mi
+              default:
+                cpu: 500m
+                memory: 512Mi
+    - id: adminBinding
+      includeWhen:
+        - ${schema.spec.adminGroup != ""}
+      template:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: ${schema.spec.name}-admins
+          namespace: ${namespace.metadata.name}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: edit
+        subjects:
+          - kind: Group
+            apiGroup: rbac.authorization.k8s.io
+            name: ${schema.spec.adminGroup}
+    - id: viewerBinding
+      includeWhen:
+        - ${schema.spec.viewerGroup != ""}
+      template:
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: ${schema.spec.name}-viewers
+          namespace: ${namespace.metadata.name}
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: view
+        subjects:
+          - kind: Group
+            apiGroup: rbac.authorization.k8s.io
+            name: ${schema.spec.viewerGroup}

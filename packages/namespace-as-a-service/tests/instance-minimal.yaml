@@ -1,0 +1,7 @@
+apiVersion: kro.run/v1alpha1
+kind: TenantNamespace
+metadata:
+  name: minimal
+spec:
+  name: team-minimal
+  team: acme-minimal
