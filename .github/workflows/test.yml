@@ -50,8 +50,9 @@ jobs:
       - name: Install kro
         run: |
           set -euo pipefail
-          kubectl apply --server-side -f https://github.com/kubernetes-sigs/kro/releases/download/v0.6.1/kro-0.6.1.yaml
-          kubectl wait --for=condition=Available deploy/kro-controller-manager -n kro-system --timeout=120s
+          helm install kro oci://registry.k8s.io/kro/charts/kro \
+            --namespace kro-system --create-namespace --version 0.6.1
+          kubectl wait --for=condition=Available deploy/kro -n kro-system --timeout=120s
 
       - name: Install cert-manager (web-service dep)
         if: matrix.package == 'web-service'
