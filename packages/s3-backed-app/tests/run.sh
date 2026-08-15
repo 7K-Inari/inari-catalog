@@ -16,9 +16,13 @@ kubectl get crd s3backedapps.kro.run >/dev/null
 kubectl apply -f tests/instance-minimal.yaml
 kubectl apply -f tests/instance-full.yaml
 
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   kubectl get bucket.s3.aws.upbound.io minimal-s3 >/dev/null 2>&1 && \
-  kubectl get bucket.s3.aws.upbound.io acme-full-s3 >/dev/null 2>&1 && break
+  kubectl get bucket.s3.aws.upbound.io acme-full-s3 >/dev/null 2>&1 && \
+  kubectl get deployment minimal-s3 >/dev/null 2>&1 && \
+  kubectl get deployment full-s3 >/dev/null 2>&1 && \
+  kubectl get service minimal-s3 >/dev/null 2>&1 && \
+  kubectl get service full-s3 >/dev/null 2>&1 && break
   sleep 2
 done
 kubectl get bucket.s3.aws.upbound.io minimal-s3

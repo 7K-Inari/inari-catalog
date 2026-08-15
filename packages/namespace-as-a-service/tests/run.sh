@@ -16,9 +16,13 @@ kubectl get crd tenantnamespaces.kro.run >/dev/null
 kubectl apply -f tests/instance-minimal.yaml
 kubectl apply -f tests/instance-full.yaml
 
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   kubectl get namespace team-minimal >/dev/null 2>&1 && \
-  kubectl get namespace team-full >/dev/null 2>&1 && break
+  kubectl get namespace team-full >/dev/null 2>&1 && \
+  kubectl get resourcequota team-full-quota -n team-full >/dev/null 2>&1 && \
+  kubectl get limitrange team-full-defaults -n team-full >/dev/null 2>&1 && \
+  kubectl get rolebinding team-full-admins -n team-full >/dev/null 2>&1 && \
+  kubectl get rolebinding team-full-viewers -n team-full >/dev/null 2>&1 && break
   sleep 2
 done
 kubectl get namespace team-minimal

@@ -16,9 +16,15 @@ kubectl get crd webservices.kro.run >/dev/null
 kubectl apply -f tests/instance-minimal.yaml
 kubectl apply -f tests/instance-full.yaml
 
-for i in $(seq 1 30); do
+for i in $(seq 1 60); do
   kubectl get deployment minimal-web >/dev/null 2>&1 && \
-  kubectl get deployment full-web >/dev/null 2>&1 && break
+  kubectl get deployment full-web >/dev/null 2>&1 && \
+  kubectl get service minimal-web >/dev/null 2>&1 && \
+  kubectl get service full-web >/dev/null 2>&1 && \
+  kubectl get ingress minimal-web >/dev/null 2>&1 && \
+  kubectl get ingress full-web >/dev/null 2>&1 && \
+  kubectl get certificate.cert-manager.io minimal-web-tls >/dev/null 2>&1 && \
+  kubectl get certificate.cert-manager.io full-web-tls >/dev/null 2>&1 && break
   sleep 2
 done
 kubectl get deployment minimal-web
