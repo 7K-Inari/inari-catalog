@@ -7,12 +7,12 @@ spec:
     apiVersion: v1alpha1
     kind: WebService
     spec:
-      name: string
+      name: string | required=true
       namespace: string | default="default"
-      image: string
+      image: string | required=true
       replicas: integer | default=2
       port: integer | default=8080
-      host: string
+      host: string | required=true
       ingressClassName: string | default="nginx"
       clusterIssuer: string | default="letsencrypt-prod"
       externalDnsHostname: string | default=""
@@ -88,7 +88,7 @@ spec:
           name: ${schema.spec.name}
           namespace: ${schema.spec.namespace}
           annotations:
-            external-dns.alpha.kubernetes.io/hostname: ${has(schema.spec.externalDnsHostname) && schema.spec.externalDnsHostname != "" ? schema.spec.externalDnsHostname : schema.spec.host}
+            external-dns.alpha.kubernetes.io/hostname: '${has(schema.spec.externalDnsHostname) && schema.spec.externalDnsHostname != "" ? schema.spec.externalDnsHostname : schema.spec.host}'
         spec:
           ingressClassName: ${schema.spec.ingressClassName}
           tls:

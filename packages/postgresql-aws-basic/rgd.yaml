@@ -7,7 +7,7 @@ spec:
     apiVersion: v1alpha1
     kind: PostgresAWS
     spec:
-      name: string
+      name: string | required=true
       namespace: string | default="default"
       region: string | default="us-east-1"
       engineVersion: string | default="16"

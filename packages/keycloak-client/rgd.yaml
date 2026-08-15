@@ -7,11 +7,11 @@ spec:
     apiVersion: v1alpha1
     kind: KeycloakClient
     spec:
-      name: string
+      name: string | required=true
       namespace: string | default="default"
-      realm: string
+      realm: string | required=true
       clientId: string | default=""
-      redirectUris: []string
+      redirectUris: "[]string | required=true"
       publicClient: boolean | default=false
       serviceAccountsEnabled: boolean | default=false
     status:
@@ -27,7 +27,7 @@ spec:
         spec:
           forProvider:
             realmId: ${schema.spec.realm}
-            clientId: ${has(schema.spec.clientId) && schema.spec.clientId != "" ? schema.spec.clientId : schema.spec.name}
+            clientId: '${has(schema.spec.clientId) && schema.spec.clientId != "" ? schema.spec.clientId : schema.spec.name}'
             validRedirectUris: ${schema.spec.redirectUris}
             publicClient: ${schema.spec.publicClient}
             serviceAccountsEnabled: ${schema.spec.serviceAccountsEnabled}

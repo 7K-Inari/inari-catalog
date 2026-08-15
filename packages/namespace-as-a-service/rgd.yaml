@@ -7,8 +7,8 @@ spec:
     apiVersion: v1alpha1
     kind: TenantNamespace
     spec:
-      name: string
-      team: string
+      name: string | required=true
+      team: string | required=true
       labels: map[string]string | default={}
       cpuLimit: string | default="4"
       memoryLimit: string | default="8Gi"
@@ -19,7 +19,7 @@ spec:
       namespace: string
       ready: boolean
   resources:
-    - id: namespace
+    - id: ns
       template:
         apiVersion: v1
         kind: Namespace
@@ -34,7 +34,7 @@ spec:
         kind: ResourceQuota
         metadata:
           name: ${schema.spec.name}-quota
-          namespace: ${namespace.metadata.name}
+          namespace: ${ns.metadata.name}
         spec:
           hard:
             limits.cpu: ${schema.spec.cpuLimit}
@@ -46,7 +46,7 @@ spec:
         kind: LimitRange
         metadata:
           name: ${schema.spec.name}-defaults
-          namespace: ${namespace.metadata.name}
+          namespace: ${ns.metadata.name}
         spec:
           limits:
             - type: Container
@@ -64,7 +64,7 @@ spec:
         kind: RoleBinding
         metadata:
           name: ${schema.spec.name}-admins
-          namespace: ${namespace.metadata.name}
+          namespace: ${ns.metadata.name}
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: ClusterRole
@@ -81,7 +81,7 @@ spec:
         kind: RoleBinding
         metadata:
           name: ${schema.spec.name}-viewers
-          namespace: ${namespace.metadata.name}
+          namespace: ${ns.metadata.name}
         roleRef:
           apiGroup: rbac.authorization.k8s.io
           kind: ClusterRole
