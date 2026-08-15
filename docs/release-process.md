@@ -4,10 +4,11 @@ Per-package versioning and publishing for the Inari catalog. Packages ship as
 independently-versioned, cosign-signed OCI artifacts on the `stable` and
 `incubating` channels.
 
-> **Status:** the `packages/<name>/<version>/` layout, channels, and
-> `catalog.yaml` index land in M2-W1. The release automation below is fully
-> wired for that layout and verified via config validation; end-to-end OCI
-> publishing is **pending M2-W1** (no packages exist to publish yet).
+> **Status:** the `packages/<name>/` layout, channels, and the `catalog.yaml`
+> index landed in M2-W1 with five golden-path packages (see README). The
+> release automation below is fully wired for that layout; `release.yml` also
+> regenerates and commits `catalog.yaml` after each publish. End-to-end OCI
+> publishing is exercised on the first real release.
 
 ## Flow
 
