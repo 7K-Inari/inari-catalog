@@ -6,5 +6,51 @@
   "tag-separator": "-v",
   "skip-github-release": true,
   "pull-request-title-pattern": "chore: release ${component} ${version}",
-  "packages": {}
+  "packages": {
+    "packages/keycloak-client": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/namespace-as-a-service": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/postgresql-aws-basic": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/s3-backed-app": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/web-service": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    }
+  }
 }
