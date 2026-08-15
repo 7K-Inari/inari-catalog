@@ -1,0 +1,70 @@
+name: test
+
+# Render/validation tests: every package's RGD is applied to a kind cluster
+# with kro installed; the generated CRD schema and composed resources are
+# asserted by packages/<name>/tests/run.sh.
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ["packages/**"]
+  push:
+    branches: [main]
+    paths: ["packages/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin main --depth=1
+            changed=$(git diff --name-only origin/main...HEAD -- packages | cut -d/ -f2 | sort -u)
+          else
+            changed=$(ls packages)
+          fi
+          pkgs=$(for p in $changed; do [ -f "packages/$p/package.yaml" ] && echo "$p"; done | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "packages=$pkgs" >> "$GITHUB_OUTPUT"
+
+  package:
+    needs: changes
+    if: ${{ fromJSON(needs.changes.outputs.packages)[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: helm/kind-action@v1
+
+      - name: Install kro
+        run: |
+          set -euo pipefail
+          kubectl apply --server-side -f https://github.com/kubernetes-sigs/kro/releases/download/v0.6.1/kro-0.6.1.yaml
+          kubectl wait --for=condition=Available deploy/kro-controller-manager -n kro-system --timeout=120s
+
+      - name: Install cert-manager (web-service dep)
+        if: matrix.package == 'web-service'
+        run: |
+          kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+          kubectl wait --for=condition=Available deploy/cert-manager -n cert-manager --timeout=180s
+
+      - name: Apply package dependency CRD stubs
+        if: hashFiles(format('packages/{0}/tests/deps', matrix.package)) != ''
+        run: |
+          if [ -d "packages/${{ matrix.package }}/tests/deps" ]; then
+            kubectl apply -f "packages/${{ matrix.package }}/tests/deps/"
+          fi
+
+      - name: Run render/validation tests
+        run: packages/${{ matrix.package }}/tests/run.sh

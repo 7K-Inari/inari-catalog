@@ -104,3 +104,24 @@ jobs:
       package: ${{ matrix.release.name }}
       version: ${{ matrix.release.version }}
       channel: ${{ matrix.release.channel }}
+
+  update-catalog:
+    needs: [detect, publish-oci]
+    if: needs.detect.outputs.releases != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate catalog.yaml index
+        run: |
+          set -euo pipefail
+          python3 scripts/build-catalog-index.py
+          if git diff --quiet catalog.yaml; then
+            echo "catalog.yaml already up to date"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog.yaml
+          git commit -m "chore: regenerate catalog.yaml index [skip ci]"
+          git push origin main
