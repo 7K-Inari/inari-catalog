@@ -1,0 +1,36 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: keycloak-client
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: KeycloakClient
+    spec:
+      name: string
+      namespace: string | default="default"
+      realm: string
+      clientId: string | default=""
+      redirectUris: []string
+      publicClient: boolean | default=false
+      serviceAccountsEnabled: boolean | default=false
+    status:
+      clientId: string
+      ready: boolean
+  resources:
+    - id: client
+      template:
+        apiVersion: client.keycloak.crossplane.io/v1alpha1
+        kind: Client
+        metadata:
+          name: ${schema.spec.name}
+        spec:
+          forProvider:
+            realmId: ${schema.spec.realm}
+            clientId: ${has(schema.spec.clientId) && schema.spec.clientId != "" ? schema.spec.clientId : schema.spec.name}
+            validRedirectUris: ${schema.spec.redirectUris}
+            publicClient: ${schema.spec.publicClient}
+            serviceAccountsEnabled: ${schema.spec.serviceAccountsEnabled}
+          writeConnectionSecretToRef:
+            name: ${schema.spec.name}-client
+            namespace: ${schema.spec.namespace}

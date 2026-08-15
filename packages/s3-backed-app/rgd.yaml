@@ -1,0 +1,75 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: s3-backed-app
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: S3BackedApp
+    spec:
+      name: string
+      namespace: string | default="default"
+      image: string
+      replicas: integer | default=1
+      port: integer | default=8080
+      bucketPrefix: string | default=""
+      region: string | default="us-east-1"
+      bucketVersioning: boolean | default=false
+    status:
+      bucketName: string
+      ready: boolean
+  resources:
+    - id: bucket
+      template:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: Bucket
+        metadata:
+          name: ${schema.spec.name}
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            versioning:
+              enabled: ${schema.spec.bucketVersioning}
+          writeConnectionSecretToRef:
+            name: ${schema.spec.name}-bucket
+            namespace: ${schema.spec.namespace}
+    - id: deployment
+      template:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+        spec:
+          replicas: ${schema.spec.replicas}
+          selector:
+            matchLabels:
+              app: ${schema.spec.name}
+          template:
+            metadata:
+              labels:
+                app: ${schema.spec.name}
+            spec:
+              containers:
+                - name: app
+                  image: ${schema.spec.image}
+                  ports:
+                    - containerPort: ${schema.spec.port}
+                  env:
+                    - name: BUCKET_NAME
+                      value: ${schema.spec.name}
+                    - name: AWS_REGION
+                      value: ${schema.spec.region}
+    - id: service
+      template:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+        spec:
+          selector:
+            app: ${schema.spec.name}
+          ports:
+            - port: 80
+              targetPort: ${schema.spec.port}

@@ -1,0 +1,13 @@
+apiVersion: kro.run/v1alpha1
+kind: S3BackedApp
+metadata:
+  name: full
+spec:
+  name: full-s3
+  namespace: default
+  image: ghcr.io/acme/uploader:0.3.1
+  replicas: 2
+  port: 9000
+  bucketPrefix: acme
+  region: eu-west-1
+  bucketVersioning: true

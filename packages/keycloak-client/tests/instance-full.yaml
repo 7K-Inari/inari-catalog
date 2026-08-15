@@ -1,0 +1,14 @@
+apiVersion: kro.run/v1alpha1
+kind: KeycloakClient
+metadata:
+  name: full
+spec:
+  name: full-client
+  namespace: default
+  realm: acme
+  clientId: checkout-web
+  redirectUris:
+    - https://checkout.example.test/callback
+    - http://localhost:3000/callback
+  publicClient: false
+  serviceAccountsEnabled: true
