@@ -1,4 +1,4 @@
-version: 0.1.0
+version: 1.0.0
 channel: incubating
 description: Application backed by an AWS S3 bucket provisioned via Crossplane.
 category: data

@@ -1,0 +1,14 @@
+# Changelog
+
+## 1.0.0 (2026-08-15)
+
+
+### Features
+
+* add incubating s3-backed-app, postgresql-aws-basic, keycloak-client packages ([42abcae](https://github.com/7K-Inari/inari-catalog/commit/42abcae5701884b21fe7e2d77dca3359500f7abc))
+* curated golden-path catalog v1 (5 KRO RGD packages) ([e2f571c](https://github.com/7K-Inari/inari-catalog/commit/e2f571cbda09625d00bf55981d8048fe67e86ece))
+
+
+### Bug Fixes
+
+* make RGDs pass kro validation (v0.6.1 CLI-verified) ([dd3d9d4](https://github.com/7K-Inari/inari-catalog/commit/dd3d9d46a6b3290df694aba5f2d3270513166b54))
