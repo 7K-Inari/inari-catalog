@@ -88,6 +88,8 @@ jobs:
         run: |
           if [ -d "packages/${{ matrix.package }}/tests/deps" ]; then
             kubectl apply -f "packages/${{ matrix.package }}/tests/deps/"
+            kubectl wait --for=condition=Established --timeout=60s \
+              $(grep -rhA3 '^kind: CustomResourceDefinition' "packages/${{ matrix.package }}/tests/deps/" | grep -oE 'name: [a-z0-9]+\.[a-z0-9.]+' | awk '{print "crd/"$2}')
           fi
 
       - name: Run render/validation tests
