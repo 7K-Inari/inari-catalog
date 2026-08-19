@@ -91,8 +91,19 @@ class BuildCatalogIndexTest(unittest.TestCase):
         )
         self.assertIn("kind: CatalogIndex", text)
         self.assertIn("  - name: a", text)
-        self.assertIn("    type: kro-rgd", text)
-        self.assertIn("    ociRef: o", text)
+        self.assertIn('    type: "kro-rgd"', text)
+        self.assertIn('    ociRef: "o"', text)
+
+    def test_folded_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pkg = root / "packages" / "folded"
+            pkg.mkdir(parents=True)
+            (pkg / "package.yaml").write_text(
+                "version: 1.0.0\ndescription: >-\n  Multi-line description:\n  with a colon.\n"
+            )
+            (entry,) = mod.build(root)
+        self.assertEqual(entry["description"], "Multi-line description: with a colon.")
 
     def test_real_repo_matches_committed_index(self):
         generated = mod.render(mod.build(mod.ROOT))
