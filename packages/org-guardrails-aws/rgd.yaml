@@ -1,0 +1,74 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: org-guardrails-aws
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: OrgGuardrailsAWS
+    spec:
+      accountName: string | required=true
+      providerConfigName: string | required=true
+      region: string | default="eu-west-1"
+      trailBucketName: string | required=true
+      monthlyBudgetUsd: integer | default=200
+      budgetAlertEmail: string | required=true
+      costCenter: string | required=true
+    status:
+      trailArn: ${trail.status.atProvider.arn}
+      ready: ${trail.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+  resources:
+    - id: trail
+      template:
+        apiVersion: cloudtrail.aws.upbound.io/v1beta1
+        kind: Trail
+        metadata:
+          name: '${schema.spec.accountName}-audit'
+          labels:
+            inari.dev/package: org-guardrails-aws
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            s3BucketName: ${schema.spec.trailBucketName}
+            isMultiRegionTrail: true
+            includeGlobalServiceEvents: true
+            enableLogFileValidation: true
+            isOrganizationTrail: false
+            tags:
+              inari.dev/cost-center: ${schema.spec.costCenter}
+              inari.dev/guardrail: audit-trail
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+      readyWhen:
+        - ${trail.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+    - id: budget
+      template:
+        apiVersion: budgets.aws.upbound.io/v1beta1
+        kind: Budget
+        metadata:
+          name: '${schema.spec.accountName}-monthly'
+        spec:
+          forProvider:
+            budgetType: COST
+            timeUnit: MONTHLY
+            limitAmount: ${string(schema.spec.monthlyBudgetUsd)}
+            limitUnit: USD
+            notification:
+              - comparisonOperator: GREATER_THAN
+                threshold: 80
+                thresholdType: PERCENTAGE
+                notificationType: FORECASTED
+                subscriberEmailAddresses:
+                  - ${schema.spec.budgetAlertEmail}
+              - comparisonOperator: GREATER_THAN
+                threshold: 100
+                thresholdType: PERCENTAGE
+                notificationType: ACTUAL
+                subscriberEmailAddresses:
+                  - ${schema.spec.budgetAlertEmail}
+            costFilter:
+              - name: TagKeyValue
+                values:
+                  - 'user:inari.dev/cost-center$${schema.spec.costCenter}'
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}

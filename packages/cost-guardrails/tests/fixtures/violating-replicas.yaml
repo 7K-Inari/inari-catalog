@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: violating-replicas
+  namespace: default
+  labels:
+    inari.dev/cost-center: cc-1
+spec:
+  replicas: 50
+  selector:
+    matchLabels:
+      app: x
+  template:
+    metadata:
+      labels:
+        app: x
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.27
