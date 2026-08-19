@@ -4,4 +4,5 @@ metadata:
   name: minimal
 spec:
   name: minimal-s3
-  image: nginx:1.27
+  image: ghcr.io/example/app:1.0.0
+  providerConfigName: dev-account

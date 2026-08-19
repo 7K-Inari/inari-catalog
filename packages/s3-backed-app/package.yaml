@@ -1,4 +1,8 @@
-version: 1.0.0
+version: 2.0.0
 channel: incubating
-description: Application backed by an AWS S3 bucket provisioned via Crossplane.
+type: kro-rgd
+description: >-
+  Application backed by an AWS S3 bucket via Crossplane provider-aws:
+  encrypted, public-access-blocked bucket pinned to a per-account
+  ProviderConfig, optional in-graph IRSA role for the workload.
 category: data

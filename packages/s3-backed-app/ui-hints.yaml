@@ -4,8 +4,12 @@ package: s3-backed-app
 groups:
   - name: Workload
     fields: [name, namespace, image, replicas, port]
+  - name: Cloud account
+    fields: [providerConfigName, region]
   - name: Storage
-    fields: [bucketPrefix, region, bucketVersioning]
+    fields: [bucketPrefix, bucketVersioning]
+  - name: IRSA
+    fields: [createIrsaRole, irsaRoleArn, oidcProviderArn, oidcIssuer]
 fields:
   name:
     widget: text
@@ -13,6 +17,11 @@ fields:
     widget: namespacePicker
   image:
     widget: imagePicker
+  providerConfigName:
+    widget: providerConfigPicker
+    help: >-
+      Name of the Crossplane ProviderConfig for the target AWS account.
+      Created during AWS account onboarding.
   replicas:
     widget: number
   port:
@@ -26,3 +35,17 @@ fields:
   bucketVersioning:
     widget: checkbox
     help: Enable S3 object versioning.
+  createIrsaRole:
+    widget: checkbox
+    help: >-
+      Create an IAM role + bucket-scoped policy in-graph and annotate the
+      workload ServiceAccount. Requires oidcProviderArn and oidcIssuer.
+  irsaRoleArn:
+    widget: text
+    help: Existing IAM role ARN to annotate the ServiceAccount with (when not creating one).
+  oidcProviderArn:
+    widget: text
+    help: ARN of the cluster's IAM OIDC provider (EKS IRSA).
+  oidcIssuer:
+    widget: text
+    help: Cluster OIDC issuer hostpath, e.g. oidc.eks.eu-west-1.amazonaws.com/id/EXAMPLE.

@@ -10,14 +10,20 @@ spec:
       name: string | required=true
       namespace: string | default="default"
       image: string | required=true
+      providerConfigName: string | required=true
       replicas: integer | default=1
       port: integer | default=8080
       bucketPrefix: string | default=""
       region: string | default="us-east-1"
       bucketVersioning: boolean | default=false
+      createIrsaRole: boolean | default=false
+      irsaRoleArn: string | default=""
+      oidcProviderArn: string | default=""
+      oidcIssuer: string | default=""
     status:
-      bucketName: string
-      ready: boolean
+      bucketName: ${bucket.metadata.name}
+      bucketArn: ${bucket.status.atProvider.arn}
+      ready: ${bucket.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
   resources:
     - id: bucket
       template:
@@ -25,14 +31,117 @@ spec:
         kind: Bucket
         metadata:
           name: '${schema.spec.bucketPrefix != "" ? schema.spec.bucketPrefix + "-" + schema.spec.name : schema.spec.name}'
+          labels:
+            inari.dev/package: s3-backed-app
         spec:
           forProvider:
             region: ${schema.spec.region}
-            versioning:
-              enabled: ${schema.spec.bucketVersioning}
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
           writeConnectionSecretToRef:
             name: ${schema.spec.name}-bucket
             namespace: ${schema.spec.namespace}
+      readyWhen:
+        - ${bucket.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+    - id: bucketVersioning
+      template:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: BucketVersioning
+        metadata:
+          name: ${bucket.metadata.name}
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            bucketRef:
+              name: ${bucket.metadata.name}
+            versioningConfiguration:
+              status: ${schema.spec.bucketVersioning ? "Enabled" : "Suspended"}
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+    - id: bucketEncryption
+      template:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: BucketServerSideEncryptionConfiguration
+        metadata:
+          name: ${bucket.metadata.name}
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            bucketRef:
+              name: ${bucket.metadata.name}
+            rule:
+              - applyServerSideEncryptionByDefault:
+                  - sseAlgorithm: AES256
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+    - id: bucketPublicAccessBlock
+      template:
+        apiVersion: s3.aws.upbound.io/v1beta1
+        kind: BucketPublicAccessBlock
+        metadata:
+          name: ${bucket.metadata.name}
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            bucketRef:
+              name: ${bucket.metadata.name}
+            blockPublicAcls: true
+            blockPublicPolicy: true
+            ignorePublicAcls: true
+            restrictPublicBuckets: true
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+    - id: irsaRole
+      includeWhen:
+        - ${schema.spec.createIrsaRole}
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          name: '${schema.spec.name}-s3'
+        spec:
+          forProvider:
+            assumeRolePolicy: '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Federated":"${schema.spec.oidcProviderArn}"},"Action":"sts:AssumeRoleWithWebIdentity","Condition":{"StringEquals":{"${schema.spec.oidcIssuer}:sub":"system:serviceaccount:${schema.spec.namespace}:${schema.spec.name}","${schema.spec.oidcIssuer}:aud":"sts.amazonaws.com"}}}]}'
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+    - id: irsaPolicy
+      includeWhen:
+        - ${schema.spec.createIrsaRole}
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Policy
+        metadata:
+          name: '${schema.spec.name}-s3'
+        spec:
+          forProvider:
+            document: '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:ListBucket"],"Resource":["arn:aws:s3:::${bucket.metadata.name}","arn:aws:s3:::${bucket.metadata.name}/*"]}]}'
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+    - id: irsaAttachment
+      includeWhen:
+        - ${schema.spec.createIrsaRole}
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        metadata:
+          name: '${schema.spec.name}-s3'
+        spec:
+          forProvider:
+            roleRef:
+              name: '${schema.spec.name}-s3'
+            policyArnRef:
+              name: '${schema.spec.name}-s3'
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+    - id: serviceAccount
+      template:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+          annotations:
+            eks.amazonaws.com/role-arn: ${schema.spec.createIrsaRole ? string(irsaRole.status.atProvider.arn) : schema.spec.irsaRoleArn}
     - id: deployment
       template:
         apiVersion: apps/v1
@@ -50,6 +159,7 @@ spec:
               labels:
                 app: ${schema.spec.name}
             spec:
+              serviceAccountName: ${schema.spec.name}
               containers:
                 - name: app
                   image: ${schema.spec.image}

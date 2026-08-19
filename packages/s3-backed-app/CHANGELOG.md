@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.0.0 (unreleased)
+
+### Breaking changes
+
+* new required field `providerConfigName` pins every managed resource to a
+  per-account Crossplane `ProviderConfig` (platform plan §5.7).
+
+### Features
+
+* bucket encryption (SSE-S3), full public access block, versioning subresource.
+* optional in-graph IRSA role + bucket-scoped policy (`createIrsaRole`), or
+  bring-your-own role via `irsaRoleArn`.
+* workload runs under a dedicated annotated ServiceAccount; status exposes
+  bucketName/bucketArn/ready; readyWhen on the bucket Ready condition.
+
 ## 1.0.0 (2026-08-15)
 
 
