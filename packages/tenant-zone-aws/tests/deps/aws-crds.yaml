@@ -1,0 +1,131 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: accounts.organizations.aws.upbound.io
+spec:
+  group: organizations.aws.upbound.io
+  names:
+    kind: Account
+    plural: accounts
+    singular: account
+  scope: Cluster
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: openidconnectproviders.iam.aws.upbound.io
+spec:
+  group: iam.aws.upbound.io
+  names:
+    kind: OpenIDConnectProvider
+    plural: openidconnectproviders
+    singular: openidconnectprovider
+  scope: Cluster
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: roles.iam.aws.upbound.io
+spec:
+  group: iam.aws.upbound.io
+  names:
+    kind: Role
+    plural: roles
+    singular: role
+  scope: Cluster
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: rolepolicyattachments.iam.aws.upbound.io
+spec:
+  group: iam.aws.upbound.io
+  names:
+    kind: RolePolicyAttachment
+    plural: rolepolicyattachments
+    singular: rolepolicyattachment
+  scope: Cluster
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: clusters.eks.aws.upbound.io
+spec:
+  group: eks.aws.upbound.io
+  names:
+    kind: Cluster
+    plural: clusters
+    singular: cluster
+  scope: Cluster
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: nodegroups.eks.aws.upbound.io
+spec:
+  group: eks.aws.upbound.io
+  names:
+    kind: NodeGroup
+    plural: nodegroups
+    singular: nodegroup
+  scope: Cluster
+  versions:
+    - name: v1beta1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      subresources:
+        status: {}

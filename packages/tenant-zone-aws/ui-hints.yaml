@@ -1,0 +1,53 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: tenant-zone-aws
+groups:
+  - name: Zone
+    fields: [zoneName, email, ouId, costCenter, environment]
+  - name: AWS access
+    fields: [managementProviderConfigName, tenantProviderConfigName, platformOidcProviderArn, platformOidcIssuer]
+  - name: Cluster
+    fields: [tier, region, kubernetesVersion, subnetIds, nodeInstanceType, nodeCount]
+fields:
+  zoneName:
+    widget: text
+    help: DNS-safe zone slug; used for account and cluster names.
+  email:
+    widget: text
+    help: Root email for the vended AWS account.
+  ouId:
+    widget: text
+    help: Target AWS Organizations OU (ou-...).
+  costCenter:
+    widget: text
+    help: Mandatory cost tag; enforced at request time by the Policy Service.
+  environment:
+    widget: select
+    options: [production, staging, development]
+  managementProviderConfigName:
+    widget: providerConfigPicker
+    help: ProviderConfig for the AWS Organizations management account (scope: management).
+  tenantProviderConfigName:
+    widget: providerConfigPicker
+    help: ProviderConfig that role-chains into the vended account.
+  platformOidcProviderArn:
+    widget: text
+  platformOidcIssuer:
+    widget: text
+  tier:
+    widget: select
+    options: [starter]
+  region:
+    widget: select
+    options: [eu-west-1, eu-central-1, us-east-1, us-west-2]
+  kubernetesVersion:
+    widget: select
+    options: ["1.30", "1.31"]
+  subnetIds:
+    widget: stringList
+  nodeInstanceType:
+    widget: select
+    options: [t3.large, t3.xlarge, m6i.large]
+  nodeCount:
+    widget: number
+    help: Starter tier default 2 (2× t3.large).

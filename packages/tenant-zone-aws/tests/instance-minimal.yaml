@@ -1,0 +1,13 @@
+apiVersion: kro.run/v1alpha1
+kind: TenantZoneAWS
+metadata:
+  name: globex
+spec:
+  zoneName: globex
+  email: aws+globex@example.com
+  ouId: ou-ab12-34567890
+  managementProviderConfigName: management-account
+  tenantProviderConfigName: globex-account
+  platformOidcProviderArn: arn:aws:iam::111122223333:oidc-provider/oidc.eks.eu-west-1.amazonaws.com/id/PLATFORM
+  platformOidcIssuer: oidc.eks.eu-west-1.amazonaws.com/id/PLATFORM
+  costCenter: cc-2002

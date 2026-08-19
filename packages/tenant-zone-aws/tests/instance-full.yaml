@@ -1,0 +1,14 @@
+apiVersion: kro.run/v1alpha1
+kind: TenantZoneAWS
+metadata:
+  name: acme
+spec:
+  zoneName: acme
+  email: aws+acme@example.com
+  ouId: ou-ab12-34567890
+  managementProviderConfigName: management-account
+  tenantProviderConfigName: acme-account
+  platformOidcProviderArn: arn:aws:iam::111122223333:oidc-provider/oidc.eks.eu-west-1.amazonaws.com/id/PLATFORM
+  platformOidcIssuer: oidc.eks.eu-west-1.amazonaws.com/id/PLATFORM
+  costCenter: cc-1001
+  subnetIds: ["subnet-aaa", "subnet-bbb"]

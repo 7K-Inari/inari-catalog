@@ -1,0 +1,174 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: tenant-zone-aws
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: TenantZoneAWS
+    spec:
+      zoneName: string | required=true
+      email: string | required=true
+      ouId: string | required=true
+      region: string | default="eu-west-1"
+      tier: string | default="starter"
+      managementProviderConfigName: string | required=true
+      tenantProviderConfigName: string | required=true
+      platformOidcProviderArn: string | required=true
+      platformOidcIssuer: string | required=true
+      costCenter: string | required=true
+      environment: string | default="production"
+      subnetIds: "[]string"
+      nodeInstanceType: string | default="t3.large"
+      nodeCount: integer | default=2
+      kubernetesVersion: string | default="1.31"
+    status:
+      accountId: ${account.status.atProvider.id}
+      clusterName: ${eksCluster.metadata.name}
+      state: ${account.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True') ? (bootstrapRole.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True') ? (eksCluster.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True') ? "Active" : "ProvisioningCluster") : "BootstrappingTrust") : "VendingAccount"}
+      ready: ${eksCluster.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+  resources:
+    - id: account
+      template:
+        apiVersion: organizations.aws.upbound.io/v1beta1
+        kind: Account
+        metadata:
+          name: ${schema.spec.zoneName}
+          labels:
+            inari.dev/package: tenant-zone-aws
+        spec:
+          forProvider:
+            name: ${schema.spec.zoneName}
+            email: ${schema.spec.email}
+            parentId: ${schema.spec.ouId}
+            roleName: OrganizationAccountAccessRole
+            iamUserAccessToBilling: DENY
+            tags:
+              inari.dev/zone: ${schema.spec.zoneName}
+              inari.dev/cost-center: ${schema.spec.costCenter}
+              inari.dev/environment: ${schema.spec.environment}
+          providerConfigRef:
+            name: ${schema.spec.managementProviderConfigName}
+      readyWhen:
+        - ${account.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+    - id: oidcProvider
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: OpenIDConnectProvider
+        metadata:
+          name: ${schema.spec.zoneName}
+        spec:
+          forProvider:
+            url: 'https://${schema.spec.platformOidcIssuer}'
+            clientIdList:
+              - sts.amazonaws.com
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
+    - id: bootstrapRole
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          name: '${schema.spec.zoneName}-inari-bootstrap'
+        spec:
+          forProvider:
+            assumeRolePolicy: '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Federated":"${schema.spec.platformOidcProviderArn}"},"Action":"sts:AssumeRoleWithWebIdentity","Condition":{"StringEquals":{"${schema.spec.platformOidcIssuer}:aud":"sts.amazonaws.com"}}}]}'
+            tags:
+              inari.dev/zone: ${schema.spec.zoneName}
+              inari.dev/cost-center: ${schema.spec.costCenter}
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
+      readyWhen:
+        - ${bootstrapRole.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+    - id: eksClusterRole
+      includeWhen:
+        - ${schema.spec.tier == "starter"}
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          name: '${schema.spec.zoneName}-eks-cluster'
+        spec:
+          forProvider:
+            assumeRolePolicy: '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"eks.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
+    - id: eksClusterRoleAttachment
+      includeWhen:
+        - ${schema.spec.tier == "starter"}
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: RolePolicyAttachment
+        metadata:
+          name: '${schema.spec.zoneName}-eks-cluster'
+        spec:
+          forProvider:
+            roleRef:
+              name: '${schema.spec.zoneName}-eks-cluster'
+            policyArn: arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
+    - id: eksNodeRole
+      includeWhen:
+        - ${schema.spec.tier == "starter"}
+      template:
+        apiVersion: iam.aws.upbound.io/v1beta1
+        kind: Role
+        metadata:
+          name: '${schema.spec.zoneName}-eks-node'
+        spec:
+          forProvider:
+            assumeRolePolicy: '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"ec2.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
+    - id: eksCluster
+      includeWhen:
+        - ${schema.spec.tier == "starter"}
+      template:
+        apiVersion: eks.aws.upbound.io/v1beta1
+        kind: Cluster
+        metadata:
+          name: ${schema.spec.zoneName}
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            version: ${schema.spec.kubernetesVersion}
+            roleArnRef:
+              name: '${schema.spec.zoneName}-eks-cluster'
+            vpcConfig:
+              - subnetIds: ${schema.spec.subnetIds}
+                endpointPublicAccess: true
+            tags:
+              inari.dev/zone: ${schema.spec.zoneName}
+              inari.dev/cost-center: ${schema.spec.costCenter}
+              inari.dev/environment: ${schema.spec.environment}
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
+      readyWhen:
+        - ${eksCluster.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+    - id: eksNodeGroup
+      includeWhen:
+        - ${schema.spec.tier == "starter"}
+      template:
+        apiVersion: eks.aws.upbound.io/v1beta1
+        kind: NodeGroup
+        metadata:
+          name: '${schema.spec.zoneName}-starter'
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            clusterNameRef:
+              name: ${schema.spec.zoneName}
+            nodeRoleArnRef:
+              name: '${schema.spec.zoneName}-eks-node'
+            instanceTypes:
+              - ${schema.spec.nodeInstanceType}
+            scalingConfig:
+              - desiredSize: ${schema.spec.nodeCount}
+                minSize: ${schema.spec.nodeCount}
+                maxSize: ${schema.spec.nodeCount + 1}
+            tags:
+              inari.dev/zone: ${schema.spec.zoneName}
+              inari.dev/cost-center: ${schema.spec.costCenter}
+          providerConfigRef:
+            name: ${schema.spec.tenantProviderConfigName}
