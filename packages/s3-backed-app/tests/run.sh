@@ -19,12 +19,25 @@ kubectl apply -f tests/instance-full.yaml
 for i in $(seq 1 60); do
   kubectl get bucket.s3.aws.upbound.io minimal-s3 >/dev/null 2>&1 && \
   kubectl get bucket.s3.aws.upbound.io acme-full-s3 >/dev/null 2>&1 && \
+  kubectl get role.iam.aws.upbound.io full-s3-s3 >/dev/null 2>&1 && break
+  sleep 2
+done
+
+# Stub CRDs have no provider behind them: simulate the controllers by writing
+# status, so expressions referencing bucket.status/irsaRole.status resolve and
+# the rest of the graph (ServiceAccounts, Deployment, Service) can render.
+bucket_status='{"status":{"atProvider":{"arn":"arn:aws:s3:::BUCKET"},"conditions":[{"type":"Ready","status":"True","reason":"Available","lastTransitionTime":"2026-01-01T00:00:00Z"}]}}'
+kubectl patch bucket.s3.aws.upbound.io minimal-s3 --subresource=status --type=merge -p "${bucket_status/BUCKET/minimal-s3}"
+kubectl patch bucket.s3.aws.upbound.io acme-full-s3 --subresource=status --type=merge -p "${bucket_status/BUCKET/acme-full-s3}"
+kubectl patch role.iam.aws.upbound.io full-s3-s3 --subresource=status --type=merge -p \
+  '{"status":{"atProvider":{"arn":"arn:aws:iam::123456789012:role/full-s3-s3"},"conditions":[{"type":"Ready","status":"True","reason":"Available","lastTransitionTime":"2026-01-01T00:00:00Z"}]}}'
+
+for i in $(seq 1 60); do
   kubectl get deployment minimal-s3 >/dev/null 2>&1 && \
   kubectl get deployment full-s3 >/dev/null 2>&1 && \
   kubectl get service minimal-s3 >/dev/null 2>&1 && \
   kubectl get service full-s3 >/dev/null 2>&1 && \
-  kubectl get bucketpublicaccessblock.s3.aws.upbound.io minimal-s3 >/dev/null 2>&1 && \
-  kubectl get role.iam.aws.upbound.io full-s3-s3 >/dev/null 2>&1 && break
+  kubectl get bucketpublicaccessblock.s3.aws.upbound.io minimal-s3 >/dev/null 2>&1 && break
   sleep 2
 done
 kubectl get bucket.s3.aws.upbound.io minimal-s3
@@ -57,5 +70,7 @@ kubectl get role.iam.aws.upbound.io full-s3-s3 -o jsonpath='{.spec.forProvider.a
 
 # Workload runs under its ServiceAccount.
 kubectl get serviceaccount minimal-s3
+kubectl get serviceaccount full-s3
+kubectl get serviceaccount full-s3 -o jsonpath='{.metadata.annotations.eks\.amazonaws\.com/role-arn}' | grep -q 'arn:aws:iam::123456789012:role/full-s3-s3'
 kubectl get deployment full-s3 -o jsonpath='{.spec.template.spec.serviceAccountName}' | grep -q full-s3
 echo "s3-backed-app: OK"
