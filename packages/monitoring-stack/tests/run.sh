@@ -10,7 +10,10 @@ helm repo add inari-test-prom https://prometheus-community.github.io/helm-charts
 helm template monitoring inari-test-prom/kube-prometheus-stack \
   --version "$version" --namespace monitoring -f values-defaults.yaml > /tmp/monitoring-render.yaml
 
-grep -q 'kind: StatefulSet' /tmp/monitoring-render.yaml
+# Prometheus/Alertmanager are rendered as operator CRs (the operator creates
+# the StatefulSets), so assert the CRs rather than StatefulSets.
+grep -q 'kind: Prometheus' /tmp/monitoring-render.yaml
+grep -q 'kind: Alertmanager' /tmp/monitoring-render.yaml
 grep -q 'kind: Deployment' /tmp/monitoring-render.yaml
 grep -q 'grafana' /tmp/monitoring-render.yaml
 grep -q 'prometheus' /tmp/monitoring-render.yaml

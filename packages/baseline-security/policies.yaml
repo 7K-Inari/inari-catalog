@@ -129,7 +129,7 @@ spec:
         resources: ["deployments", "statefulsets"]
   validations:
     - expression: >-
-        has(object.metadata.labels) && has(object.metadata.labels['inari.dev/tenant'])
+        has(object.metadata.labels) && 'inari.dev/tenant' in object.metadata.labels
       message: "Workload must carry the inari.dev/tenant label (tenant isolation, §5.10)."
 ---
 apiVersion: admissionregistration.k8s.io/v1

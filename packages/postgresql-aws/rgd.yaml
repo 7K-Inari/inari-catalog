@@ -20,7 +20,8 @@ spec:
       deletionProtection: boolean | default=false
       publiclyAccessible: boolean | default=false
       backupRetentionPeriod: integer | default=7
-      vpcSecurityGroupIds: "[]string"
+      vpcSecurityGroupIds: >-
+        []string | default=[]
     status:
       endpoint: ${dbInstance.status.atProvider.address}
       port: ${dbInstance.status.atProvider.port}

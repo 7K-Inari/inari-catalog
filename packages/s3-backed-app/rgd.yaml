@@ -133,7 +133,12 @@ spec:
               name: '${schema.spec.name}-s3'
           providerConfigRef:
             name: ${schema.spec.providerConfigName}
+    # KRO skips (does not create) any resource whose dependency is excluded by
+    # includeWhen, so the ServiceAccount must be split: the IRSA variant may
+    # reference irsaRole, the plain variant must not.
     - id: serviceAccount
+      includeWhen:
+        - ${!schema.spec.createIrsaRole}
       template:
         apiVersion: v1
         kind: ServiceAccount
@@ -141,7 +146,18 @@ spec:
           name: ${schema.spec.name}
           namespace: ${schema.spec.namespace}
           annotations:
-            eks.amazonaws.com/role-arn: '${schema.spec.createIrsaRole ? string(irsaRole.status.atProvider.arn) : schema.spec.irsaRoleArn}'
+            eks.amazonaws.com/role-arn: ${schema.spec.irsaRoleArn}
+    - id: serviceAccountIrsa
+      includeWhen:
+        - ${schema.spec.createIrsaRole}
+      template:
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: ${schema.spec.name}
+          namespace: ${schema.spec.namespace}
+          annotations:
+            eks.amazonaws.com/role-arn: ${string(irsaRole.status.atProvider.arn)}
     - id: deployment
       template:
         apiVersion: apps/v1

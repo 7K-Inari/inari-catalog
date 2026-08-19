@@ -18,7 +18,8 @@ spec:
       platformOidcIssuer: string | required=true
       costCenter: string | required=true
       environment: string | default="production"
-      subnetIds: "[]string"
+      subnetIds: >-
+        []string | default=[]
       nodeInstanceType: string | default="t3.large"
       nodeCount: integer | default=2
       kubernetesVersion: string | default="1.31"
