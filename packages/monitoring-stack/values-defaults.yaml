@@ -1,0 +1,29 @@
+fullnameOverride: monitoring
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    replicas: 2
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    serviceMonitorSelectorNilUsesHelmValues: false
+grafana:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 5Gi
+  sidecar:
+    dashboards:
+      enabled: true
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 2
+nodeExporter:
+  enabled: true
+kubeStateMetrics:
+  enabled: true

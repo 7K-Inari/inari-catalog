@@ -1,0 +1,8 @@
+version: 1.0.0
+channel: stable
+type: platform-app
+target: platform
+description: >-
+  Keycloak IAM for the platform cluster: Inari SSO, Organizations per tenant,
+  OIDC issuer for agent/control-plane identity.
+category: platform

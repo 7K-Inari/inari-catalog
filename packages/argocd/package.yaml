@@ -1,0 +1,8 @@
+version: 1.0.0
+channel: stable
+type: platform-app
+target: platform
+description: >-
+  ArgoCD on the platform cluster: tenant-local GitOps root apps and shared
+  ArgoCD projects (platform-scoped, reconciled by inari-operator, §5.6).
+category: platform

@@ -1,0 +1,8 @@
+version: 1.0.0
+channel: stable
+type: platform-app
+target: platform
+description: >-
+  External Secrets Operator on the platform cluster; namespaced SecretStores
+  per tenant (§5.10) reconciled by inari-operator.
+category: platform

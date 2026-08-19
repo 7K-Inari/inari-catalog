@@ -1,0 +1,26 @@
+auth:
+  adminUser: admin
+replicaCount: 2
+production: true
+proxy: edge
+postgresql:
+  enabled: true
+  auth:
+    database: keycloak
+  primary:
+    persistence:
+      size: 10Gi
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    memory: 2Gi
+service:
+  type: ClusterIP
+ingress:
+  enabled: false
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true

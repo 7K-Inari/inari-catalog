@@ -1,0 +1,8 @@
+version: 1.0.0
+channel: incubating
+type: platform-app
+target: platform
+description: >-
+  Monitoring stack (Prometheus, Grafana, Alertmanager) for the platform
+  cluster and platform apps via kube-prometheus-stack.
+category: platform
