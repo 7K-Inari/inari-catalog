@@ -44,7 +44,7 @@ jobs:
           rgd='[]'; policy='[]'; app='[]'
           for p in $changed; do
             [ -f "packages/$p/package.yaml" ] || continue
-            ptype=$(grep -E '^type:' "packages/$p/package.yaml" | awk '{print $2}')
+            ptype=$(awk '/^type:/ {print $2}' "packages/$p/package.yaml")
             case "${ptype:-kro-rgd}" in
               kro-rgd)      rgd=$(echo "$rgd"    | jq -c --arg p "$p" '. + [$p]') ;;
               policy-pack)  policy=$(echo "$policy" | jq -c --arg p "$p" '. + [$p]') ;;
