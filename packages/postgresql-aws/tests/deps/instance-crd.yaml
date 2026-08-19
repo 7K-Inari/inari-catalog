@@ -24,5 +24,25 @@ spec:
             status:
               type: object
               x-kubernetes-preserve-unknown-fields: true
+              properties:
+                atProvider:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    address:
+                      type: string
+                    port:
+                      type: integer
+
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
       subresources:
         status: {}

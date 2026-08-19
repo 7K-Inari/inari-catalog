@@ -24,6 +24,24 @@ spec:
             status:
               type: object
               x-kubernetes-preserve-unknown-fields: true
+              properties:
+                atProvider:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                  properties:
+                    arn:
+                      type: string
+
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
       subresources:
         status: {}
 ---
@@ -53,5 +71,20 @@ spec:
             status:
               type: object
               x-kubernetes-preserve-unknown-fields: true
+              properties:
+                atProvider:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    properties:
+                      type:
+                        type: string
+                      status:
+                        type: string
       subresources:
         status: {}
