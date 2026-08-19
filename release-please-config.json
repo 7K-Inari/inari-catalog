@@ -7,7 +7,70 @@
   "skip-github-release": true,
   "pull-request-title-pattern": "chore: release ${component} ${version}",
   "packages": {
+    "packages/argocd": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/baseline-security": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/cert-manager": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/cost-guardrails": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/external-secrets": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/keycloak": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
     "packages/keycloak-client": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/monitoring-stack": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
@@ -25,7 +88,16 @@
         "package.yaml"
       ]
     },
-    "packages/postgresql-aws-basic": {
+    "packages/org-guardrails-aws": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/postgresql-aws": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,
@@ -35,6 +107,15 @@
       ]
     },
     "packages/s3-backed-app": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
+    "packages/tenant-zone-aws": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
       "bump-minor-pre-major": true,

@@ -72,8 +72,8 @@ jobs:
           python3 - <<EOF
           import glob, sys, yaml
           try:
-              for f in glob.glob("$pkg/**/*.yaml", recursive=True):
-                  yaml.safe_load(open(f))
+               for f in glob.glob("$pkg/**/*.yaml", recursive=True):
+                   list(yaml.safe_load_all(open(f)))
           except yaml.YAMLError as e:
               sys.exit(f"invalid YAML: {e}")
           EOF

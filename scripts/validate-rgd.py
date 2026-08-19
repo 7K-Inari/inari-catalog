@@ -16,6 +16,21 @@ ROOT = Path(__file__).resolve().parent.parent
 REQUIRED_TOP = ("apiVersion: kro.run/v1alpha1", "kind: ResourceGraphDefinition")
 REQUIRED_SECTIONS = ("schema:", "resources:", "apiVersion:", "kind:")
 
+TYPE_FILES = {
+    "kro-rgd": ("rgd.yaml",),
+    "platform-app": ("chart.yaml", "values-defaults.yaml"),
+    "policy-pack": ("policies.yaml",),
+}
+VALID_TYPES = tuple(TYPE_FILES)
+
+
+def package_type(pkg: Path) -> str:
+    for line in (pkg / "package.yaml").read_text().splitlines():
+        m = re.match(r"^type:\s*(\S+)", line)
+        if m:
+            return m.group(1)
+    return "kro-rgd"
+
 
 def check_rgd(path: Path, errors: list[str]) -> None:
     text = path.read_text()
@@ -51,12 +66,17 @@ def main() -> int:
         for pkg in sorted(packages_dir.iterdir()):
             if not (pkg.is_dir() and (pkg / "package.yaml").is_file()):
                 continue
-            rgd = pkg / "rgd.yaml"
-            if not rgd.is_file():
-                errors.append(f"{pkg}: missing rgd.yaml")
+            ptype = package_type(pkg)
+            if ptype not in VALID_TYPES:
+                errors.append(f"{pkg}: unknown type '{ptype}' (expected one of {', '.join(VALID_TYPES)})")
                 continue
-            check_rgd(rgd, errors)
-            for hint in ("ui-hints.yaml", "README.md"):
+            for required in TYPE_FILES[ptype]:
+                if not (pkg / required).is_file():
+                    errors.append(f"{pkg}: missing {required} (type: {ptype})")
+            if ptype == "kro-rgd" and (pkg / "rgd.yaml").is_file():
+                check_rgd(pkg / "rgd.yaml", errors)
+            hints = ("ui-hints.yaml", "README.md") if ptype == "kro-rgd" else ("README.md",)
+            for hint in hints:
                 if not (pkg / hint).is_file():
                     errors.append(f"{pkg}: missing {hint}")
             if not (pkg / "tests").is_dir():

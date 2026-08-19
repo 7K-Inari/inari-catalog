@@ -1,0 +1,10 @@
+version: 1.0.0
+channel: stable
+type: policy-pack
+engine: cel-vap
+description: >-
+  Baseline in-cluster admission guardrails (plan §5.11): pinned images,
+  resource requests/limits, no privileged/hostPath/hostNetwork, mandatory
+  tenant label; read-only rootfs as warn. Distributed to ClusterSets via
+  fleet rollout.
+category: policy

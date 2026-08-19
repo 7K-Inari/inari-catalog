@@ -1,0 +1,19 @@
+apiVersion: kro.run/v1alpha1
+kind: PostgreSQLAWS
+metadata:
+  name: full
+spec:
+  name: full-db
+  namespace: default
+  providerConfigName: dev-account
+  region: eu-west-1
+  engineVersion: "15"
+  instanceClass: db.t3.small
+  allocatedStorage: 50
+  databaseName: orders
+  multiAZ: true
+  storageEncrypted: true
+  deletionProtection: true
+  publiclyAccessible: false
+  backupRetentionPeriod: 14
+  vpcSecurityGroupIds: ["sg-0123456789abcdef0"]

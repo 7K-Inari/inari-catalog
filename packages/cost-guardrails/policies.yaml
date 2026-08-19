@@ -1,0 +1,68 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: cost-max-replicas
+  labels:
+    inari.dev/policy-pack: cost-guardrails
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "statefulsets"]
+  validations:
+    - expression: "object.spec.replicas <= 10"
+      message: "Replica count above the cost ceiling (10); request an exemption via the Policy Service."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: cost-max-replicas
+  labels:
+    inari.dev/policy-pack: cost-guardrails
+spec:
+  policyName: cost-max-replicas
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: cost-require-cost-center-label
+  labels:
+    inari.dev/policy-pack: cost-guardrails
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "statefulsets"]
+  validations:
+    - expression: >-
+        has(object.metadata.labels) && 'inari.dev/cost-center' in object.metadata.labels
+      message: "Workload must carry the inari.dev/cost-center label for cost allocation."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: cost-require-cost-center-label
+  labels:
+    inari.dev/policy-pack: cost-guardrails
+spec:
+  policyName: cost-require-cost-center-label
+  validationActions: [Warn, Audit]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]

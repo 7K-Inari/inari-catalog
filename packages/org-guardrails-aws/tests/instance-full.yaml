@@ -1,0 +1,11 @@
+apiVersion: kro.run/v1alpha1
+kind: OrgGuardrailsAWS
+metadata:
+  name: acme
+spec:
+  accountName: acme
+  providerConfigName: acme-account
+  trailBucketName: acme-audit-logs
+  monthlyBudgetUsd: 200
+  budgetAlertEmail: platform-team@example.com
+  costCenter: cc-1001

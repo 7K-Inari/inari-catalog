@@ -45,6 +45,7 @@ class BuildCatalogIndexTest(unittest.TestCase):
                 "name": "web-service",
                 "version": "1.2.3",
                 "channel": "stable",
+                "type": "kro-rgd",
                 "description": "Web service",
                 "category": "application",
                 "ociRef": "ghcr.io/7k-inari/catalog/web-service:1.2.3",
@@ -59,6 +60,14 @@ class BuildCatalogIndexTest(unittest.TestCase):
             (entry,) = mod.build(root)
         self.assertEqual(entry["channel"], "incubating")
         self.assertEqual(entry["category"], "uncategorized")
+        self.assertEqual(entry["type"], "kro-rgd")
+
+    def test_explicit_type(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            write_pkg(root, "keycloak", version="0.1.0", type="platform-app")
+            (entry,) = mod.build(root)
+        self.assertEqual(entry["type"], "platform-app")
 
     def test_dirs_without_package_yaml_skipped(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -76,13 +85,25 @@ class BuildCatalogIndexTest(unittest.TestCase):
 
     def test_render_shape(self):
         text = mod.render(
-            [{"name": "a", "version": "0.1.0", "channel": "stable",
+            [{"name": "a", "version": "0.1.0", "channel": "stable", "type": "kro-rgd",
               "description": "d", "category": "c",
               "ociRef": "o", "channelRef": "ch"}]
         )
         self.assertIn("kind: CatalogIndex", text)
         self.assertIn("  - name: a", text)
-        self.assertIn("    ociRef: o", text)
+        self.assertIn('    type: "kro-rgd"', text)
+        self.assertIn('    ociRef: "o"', text)
+
+    def test_folded_description(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            pkg = root / "packages" / "folded"
+            pkg.mkdir(parents=True)
+            (pkg / "package.yaml").write_text(
+                "version: 1.0.0\ndescription: >-\n  Multi-line description:\n  with a colon.\n"
+            )
+            (entry,) = mod.build(root)
+        self.assertEqual(entry["description"], "Multi-line description: with a colon.")
 
     def test_real_repo_matches_committed_index(self):
         generated = mod.render(mod.build(mod.ROOT))

@@ -1,0 +1,6 @@
+repoURL: https://argoproj.github.io/argo-helm
+chart: argo-cd
+namespace: argocd
+channels:
+  stable: "7.6.12"
+  incubating: "7.6.12"

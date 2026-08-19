@@ -1,0 +1,185 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: baseline-disallow-latest-image
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: >-
+        !object.spec.containers.exists(c, !c.image.contains(':') || c.image.endsWith(':latest'))
+      message: "Images must be pinned to an explicit, non-latest tag."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: baseline-disallow-latest-image
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  policyName: baseline-disallow-latest-image
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: baseline-require-resources
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: >-
+        object.spec.containers.all(c,
+          has(c.resources) &&
+          has(c.resources.requests) && has(c.resources.requests.cpu) && has(c.resources.requests.memory) &&
+          has(c.resources.limits) && has(c.resources.limits.memory))
+      message: "Containers must set cpu/memory requests and a memory limit."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: baseline-require-resources
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  policyName: baseline-require-resources
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: baseline-disallow-privileged
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: >-
+        !object.spec.containers.exists(c,
+          has(c.securityContext) && has(c.securityContext.privileged) && c.securityContext.privileged)
+      message: "Privileged containers are not allowed."
+    - expression: >-
+        !has(object.spec.hostNetwork) || !object.spec.hostNetwork
+      message: "hostNetwork is not allowed."
+    - expression: >-
+        !has(object.spec.volumes) || !object.spec.volumes.exists(v, has(v.hostPath))
+      message: "hostPath volumes are not allowed."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: baseline-disallow-privileged
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  policyName: baseline-disallow-privileged
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: baseline-require-tenant-label
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "statefulsets"]
+  validations:
+    - expression: >-
+        has(object.metadata.labels) && 'inari.dev/tenant' in object.metadata.labels
+      message: "Workload must carry the inari.dev/tenant label (tenant isolation, §5.10)."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: baseline-require-tenant-label
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  policyName: baseline-require-tenant-label
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: baseline-readonly-rootfs
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    - expression: >-
+        object.spec.containers.all(c,
+          has(c.securityContext) && has(c.securityContext.readOnlyRootFilesystem) && c.securityContext.readOnlyRootFilesystem)
+      message: "Containers should use a read-only root filesystem."
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: baseline-readonly-rootfs
+  labels:
+    inari.dev/policy-pack: baseline-security
+spec:
+  policyName: baseline-readonly-rootfs
+  validationActions: [Warn, Audit]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kube-node-lease, kube-public]

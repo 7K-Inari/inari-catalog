@@ -1,0 +1,8 @@
+version: 1.0.0
+channel: incubating
+type: kro-rgd
+description: >-
+  Tenant Zone Factory (plan §5.12): AWS Organizations CreateAccount →
+  OIDC-trust bootstrap → EKS starter tier (one region, 2× t3.large managed
+  node group), driven from the platform cluster.
+category: foundations

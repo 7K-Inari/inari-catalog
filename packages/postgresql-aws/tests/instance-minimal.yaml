@@ -1,0 +1,7 @@
+apiVersion: kro.run/v1alpha1
+kind: PostgreSQLAWS
+metadata:
+  name: minimal
+spec:
+  name: minimal-db
+  providerConfigName: dev-account

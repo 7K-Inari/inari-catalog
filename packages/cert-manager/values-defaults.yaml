@@ -1,0 +1,15 @@
+crds:
+  enabled: true
+replicaCount: 2
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
+webhook:
+  replicaCount: 2
+cainjector:
+  replicaCount: 2
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi

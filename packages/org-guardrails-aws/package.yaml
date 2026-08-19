@@ -1,0 +1,9 @@
+version: 1.0.0
+channel: incubating
+type: kro-rgd
+description: >-
+  Org-side guardrails for vended AWS accounts (plan §5.12 step 2):
+  multi-region CloudTrail with log validation, and a monthly cost budget with
+  80% forecasted / 100% actual alerts. Mandatory cost tags are enforced at
+  request time by tenant-zone-aws.
+category: policy

@@ -2,38 +2,115 @@
 apiVersion: inari.dev/v1alpha1
 kind: CatalogIndex
 packages:
+  - name: argocd
+    version: "1.0.0"
+    channel: "stable"
+    type: "platform-app"
+    description: "ArgoCD on the platform cluster: tenant-local GitOps root apps and shared ArgoCD projects (platform-scoped, reconciled by inari-operator, §5.6)."
+    category: "platform"
+    ociRef: "ghcr.io/7k-inari/catalog/argocd:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/argocd:stable"
+  - name: baseline-security
+    version: "1.0.0"
+    channel: "stable"
+    type: "policy-pack"
+    description: "Baseline in-cluster admission guardrails (plan §5.11): pinned images, resource requests/limits, no privileged/hostPath/hostNetwork, mandatory tenant label; read-only rootfs as warn. Distributed to ClusterSets via fleet rollout."
+    category: "policy"
+    ociRef: "ghcr.io/7k-inari/catalog/baseline-security:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/baseline-security:stable"
+  - name: cert-manager
+    version: "1.0.0"
+    channel: "stable"
+    type: "platform-app"
+    description: "cert-manager on the platform cluster: TLS issuers for control-plane and platform-app ingress; reconciled by inari-operator per §5.6."
+    category: "platform"
+    ociRef: "ghcr.io/7k-inari/catalog/cert-manager:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/cert-manager:stable"
+  - name: cost-guardrails
+    version: "1.0.0"
+    channel: "incubating"
+    type: "policy-pack"
+    description: "Cost guardrails stub (plan §5.11): replica ceiling and cost-center label enforcement as CEL ValidatingAdmissionPolicies. Stub — parameters and request-time cost policies land later."
+    category: "policy"
+    ociRef: "ghcr.io/7k-inari/catalog/cost-guardrails:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/cost-guardrails:incubating"
+  - name: external-secrets
+    version: "1.0.0"
+    channel: "stable"
+    type: "platform-app"
+    description: "External Secrets Operator on the platform cluster; namespaced SecretStores per tenant (§5.10) reconciled by inari-operator."
+    category: "platform"
+    ociRef: "ghcr.io/7k-inari/catalog/external-secrets:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/external-secrets:stable"
+  - name: keycloak
+    version: "1.0.0"
+    channel: "stable"
+    type: "platform-app"
+    description: "Keycloak IAM for the platform cluster: Inari SSO, Organizations per tenant, OIDC issuer for agent/control-plane identity."
+    category: "platform"
+    ociRef: "ghcr.io/7k-inari/catalog/keycloak:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/keycloak:stable"
   - name: keycloak-client
-    version: 1.0.0
-    channel: incubating
-    description: Keycloak OIDC client in a tenant realm via Crossplane provider-keycloak.
-    category: identity
-    ociRef: ghcr.io/7k-inari/catalog/keycloak-client:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/keycloak-client:incubating
+    version: "1.0.0"
+    channel: "incubating"
+    type: "kro-rgd"
+    description: "Keycloak OIDC client in a tenant realm via Crossplane provider-keycloak."
+    category: "identity"
+    ociRef: "ghcr.io/7k-inari/catalog/keycloak-client:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/keycloak-client:incubating"
+  - name: monitoring-stack
+    version: "1.0.0"
+    channel: "incubating"
+    type: "platform-app"
+    description: "Monitoring stack (Prometheus, Grafana, Alertmanager) for the platform cluster and platform apps via kube-prometheus-stack."
+    category: "platform"
+    ociRef: "ghcr.io/7k-inari/catalog/monitoring-stack:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/monitoring-stack:incubating"
   - name: namespace-as-a-service
-    version: 1.0.0
-    channel: stable
-    description: Self-service tenant namespace with quotas, defaults, and team RBAC.
-    category: foundations
-    ociRef: ghcr.io/7k-inari/catalog/namespace-as-a-service:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/namespace-as-a-service:stable
-  - name: postgresql-aws-basic
-    version: 1.0.0
-    channel: incubating
-    description: >-
-    category: data
-    ociRef: ghcr.io/7k-inari/catalog/postgresql-aws-basic:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/postgresql-aws-basic:incubating
+    version: "1.0.0"
+    channel: "stable"
+    type: "kro-rgd"
+    description: "Self-service tenant namespace with quotas, defaults, and team RBAC."
+    category: "foundations"
+    ociRef: "ghcr.io/7k-inari/catalog/namespace-as-a-service:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/namespace-as-a-service:stable"
+  - name: org-guardrails-aws
+    version: "1.0.0"
+    channel: "incubating"
+    type: "kro-rgd"
+    description: "Org-side guardrails for vended AWS accounts (plan §5.12 step 2): multi-region CloudTrail with log validation, and a monthly cost budget with 80% forecasted / 100% actual alerts. Mandatory cost tags are enforced at request time by tenant-zone-aws."
+    category: "policy"
+    ociRef: "ghcr.io/7k-inari/catalog/org-guardrails-aws:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/org-guardrails-aws:incubating"
+  - name: postgresql-aws
+    version: "1.0.0"
+    channel: "incubating"
+    type: "kro-rgd"
+    description: "AWS RDS PostgreSQL via Crossplane provider-aws, pinned to a per-account ProviderConfig (providerConfigRef) with keyless IRSA/web-identity auth."
+    category: "data"
+    ociRef: "ghcr.io/7k-inari/catalog/postgresql-aws:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/postgresql-aws:incubating"
   - name: s3-backed-app
-    version: 1.0.0
-    channel: incubating
-    description: Application backed by an AWS S3 bucket provisioned via Crossplane.
-    category: data
-    ociRef: ghcr.io/7k-inari/catalog/s3-backed-app:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/s3-backed-app:incubating
+    version: "2.0.0"
+    channel: "incubating"
+    type: "kro-rgd"
+    description: "Application backed by an AWS S3 bucket via Crossplane provider-aws: encrypted, public-access-blocked bucket pinned to a per-account ProviderConfig, optional in-graph IRSA role for the workload."
+    category: "data"
+    ociRef: "ghcr.io/7k-inari/catalog/s3-backed-app:2.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/s3-backed-app:incubating"
+  - name: tenant-zone-aws
+    version: "1.0.0"
+    channel: "incubating"
+    type: "kro-rgd"
+    description: "Tenant Zone Factory (plan §5.12): AWS Organizations CreateAccount → OIDC-trust bootstrap → EKS starter tier (one region, 2× t3.large managed node group), driven from the platform cluster."
+    category: "foundations"
+    ociRef: "ghcr.io/7k-inari/catalog/tenant-zone-aws:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/tenant-zone-aws:incubating"
   - name: web-service
-    version: 1.0.0
-    channel: stable
-    description: Web service with ingress, automatic DNS (ExternalDNS) and TLS (cert-manager).
-    category: application
-    ociRef: ghcr.io/7k-inari/catalog/web-service:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/web-service:stable
+    version: "1.0.0"
+    channel: "stable"
+    type: "kro-rgd"
+    description: "Web service with ingress, automatic DNS (ExternalDNS) and TLS (cert-manager)."
+    category: "application"
+    ociRef: "ghcr.io/7k-inari/catalog/web-service:1.0.0"
+    channelRef: "ghcr.io/7k-inari/catalog/web-service:stable"

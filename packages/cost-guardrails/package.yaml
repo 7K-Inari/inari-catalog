@@ -1,0 +1,9 @@
+version: 1.0.0
+channel: incubating
+type: policy-pack
+engine: cel-vap
+description: >-
+  Cost guardrails stub (plan §5.11): replica ceiling and cost-center label
+  enforcement as CEL ValidatingAdmissionPolicies. Stub — parameters and
+  request-time cost policies land later.
+category: policy

@@ -2,9 +2,14 @@
 """Regenerate catalog.yaml from packages/*/package.yaml.
 
 The catalog index is what the inari-server Catalog Service consumes: one entry
-per package with name, version, channel, OCI ref, description, and category.
-OCI refs point at GHCR; the channel tag is published alongside the version tag
-by release-oci.yml.
+per package with name, version, channel, type, OCI ref, description, and
+category. OCI refs point at GHCR; the channel tag is published alongside the
+version tag by release-oci.yml.
+
+Package types (package.yaml `type`, default `kro-rgd`):
+- kro-rgd:      KRO ResourceGraphDefinition (rgd.yaml)
+- platform-app: Helm chart wrapper installable on the platform cluster
+- policy-pack:  admission policies (CEL ValidatingAdmissionPolicies)
 
 Dependency-free (no PyYAML): package.yaml is a flat mapping of scalar
 key: value pairs, and catalog.yaml is emitted directly.
@@ -18,14 +23,29 @@ INDEX = ROOT / "catalog.yaml"
 OCI_BASE = "ghcr.io/7k-inari/catalog"
 
 ENTRY_RE = re.compile(r"^(\w+):\s*(.*)$")
+FOLDED_RE = re.compile(r"^[>|][+-]?$")
 
 
 def read_package_meta(path: Path) -> dict:
     meta = {}
-    for line in path.read_text().splitlines():
-        m = ENTRY_RE.match(line)
+    lines = path.read_text().splitlines()
+    i = 0
+    while i < len(lines):
+        m = ENTRY_RE.match(lines[i])
         if m:
-            meta[m.group(1)] = m.group(2).strip()
+            key, value = m.group(1), m.group(2).strip()
+            if FOLDED_RE.match(value):
+                parts = []
+                i += 1
+                while i < len(lines) and (lines[i].startswith((" ", "\t")) or not lines[i].strip()):
+                    parts.append(lines[i].strip())
+                    i += 1
+                value = " ".join(p for p in parts if p)
+            else:
+                i += 1
+            meta[key] = value
+            continue
+        i += 1
     return meta
 
 
@@ -46,6 +66,7 @@ def build(root: Path) -> list[dict]:
                     "name": name,
                     "version": version,
                     "channel": channel,
+                    "type": meta.get("type", "kro-rgd"),
                     "description": meta.get("description", ""),
                     "category": meta.get("category", "uncategorized"),
                     "ociRef": f"{OCI_BASE}/{name}:{version}",
@@ -64,8 +85,9 @@ def render(packages: list[dict]) -> str:
     ]
     for p in packages:
         lines.append(f"  - name: {p['name']}")
-        for key in ("version", "channel", "description", "category", "ociRef", "channelRef"):
-            lines.append(f"    {key}: {p[key]}")
+        for key in ("version", "channel", "type", "description", "category", "ociRef", "channelRef"):
+            value = str(p[key]).replace("\\", "\\\\").replace('"', '\\"')
+            lines.append(f'    {key}: "{value}"')
     return "\n".join(lines) + "\n"
 
 

@@ -5,9 +5,13 @@ metadata:
 spec:
   name: full-s3
   namespace: default
-  image: ghcr.io/acme/uploader:0.3.1
-  replicas: 2
-  port: 9000
+  image: ghcr.io/example/app:2.1.0
+  providerConfigName: dev-account
+  replicas: 3
+  port: 9090
   bucketPrefix: acme
   region: eu-west-1
   bucketVersioning: true
+  createIrsaRole: true
+  oidcProviderArn: arn:aws:iam::123456789012:oidc-provider/oidc.eks.eu-west-1.amazonaws.com/id/EXAMPLE
+  oidcIssuer: oidc.eks.eu-west-1.amazonaws.com/id/EXAMPLE

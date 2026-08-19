@@ -1,0 +1,6 @@
+repoURL: https://charts.external-secrets.io
+chart: external-secrets
+namespace: external-secrets
+channels:
+  stable: "0.10.5"
+  incubating: "0.10.5"

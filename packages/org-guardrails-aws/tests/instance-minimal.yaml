@@ -1,0 +1,10 @@
+apiVersion: kro.run/v1alpha1
+kind: OrgGuardrailsAWS
+metadata:
+  name: globex
+spec:
+  accountName: globex
+  providerConfigName: globex-account
+  trailBucketName: globex-audit-logs
+  budgetAlertEmail: platform-team@example.com
+  costCenter: cc-2002

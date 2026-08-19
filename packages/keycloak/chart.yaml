@@ -1,0 +1,6 @@
+repoURL: https://charts.bitnami.com/bitnami
+chart: keycloak
+namespace: keycloak
+channels:
+  stable: "24.4.5"
+  incubating: "24.4.5"

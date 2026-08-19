@@ -1,1 +1,16 @@
-{"packages/keycloak-client":"1.0.0","packages/namespace-as-a-service":"1.0.0","packages/postgresql-aws-basic":"1.0.0","packages/s3-backed-app":"1.0.0","packages/web-service":"1.0.0"}
+{
+  "packages/argocd": "1.0.0",
+  "packages/baseline-security": "1.0.0",
+  "packages/cert-manager": "1.0.0",
+  "packages/cost-guardrails": "1.0.0",
+  "packages/external-secrets": "1.0.0",
+  "packages/keycloak": "1.0.0",
+  "packages/keycloak-client": "1.0.0",
+  "packages/monitoring-stack": "1.0.0",
+  "packages/namespace-as-a-service": "1.0.0",
+  "packages/org-guardrails-aws": "1.0.0",
+  "packages/postgresql-aws": "1.0.0",
+  "packages/s3-backed-app": "2.0.0",
+  "packages/tenant-zone-aws": "1.0.0",
+  "packages/web-service": "1.0.0"
+}

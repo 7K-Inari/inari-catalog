@@ -1,0 +1,28 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: org-guardrails-aws
+groups:
+  - name: Account
+    fields: [accountName, providerConfigName, region, costCenter]
+  - name: Audit
+    fields: [trailBucketName]
+  - name: Budget
+    fields: [monthlyBudgetUsd, budgetAlertEmail]
+fields:
+  accountName:
+    widget: text
+  providerConfigName:
+    widget: providerConfigPicker
+    help: ProviderConfig for the vended account (role-chained).
+  region:
+    widget: select
+    options: [eu-west-1, eu-central-1, us-east-1, us-west-2]
+  costCenter:
+    widget: text
+  trailBucketName:
+    widget: text
+    help: S3 bucket receiving CloudTrail logs (provisioned separately).
+  monthlyBudgetUsd:
+    widget: number
+  budgetAlertEmail:
+    widget: text

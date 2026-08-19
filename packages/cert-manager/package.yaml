@@ -1,0 +1,8 @@
+version: 1.0.0
+channel: stable
+type: platform-app
+target: platform
+description: >-
+  cert-manager on the platform cluster: TLS issuers for control-plane and
+  platform-app ingress; reconciled by inari-operator per §5.6.
+category: platform

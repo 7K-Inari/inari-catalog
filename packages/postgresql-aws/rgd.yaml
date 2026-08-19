@@ -1,0 +1,60 @@
+apiVersion: kro.run/v1alpha1
+kind: ResourceGraphDefinition
+metadata:
+  name: postgresql-aws
+spec:
+  schema:
+    apiVersion: v1alpha1
+    kind: PostgreSQLAWS
+    spec:
+      name: string | required=true
+      namespace: string | default="default"
+      region: string | default="us-east-1"
+      providerConfigName: string | required=true
+      engineVersion: string | default="16"
+      instanceClass: string | default="db.t3.micro"
+      allocatedStorage: integer | default=20
+      databaseName: string | default="app"
+      multiAZ: boolean | default=false
+      storageEncrypted: boolean | default=true
+      deletionProtection: boolean | default=false
+      publiclyAccessible: boolean | default=false
+      backupRetentionPeriod: integer | default=7
+      vpcSecurityGroupIds: >-
+        []string | default=[]
+    status:
+      endpoint: ${dbInstance.status.atProvider.address}
+      port: ${dbInstance.status.atProvider.port}
+      ready: ${dbInstance.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
+  resources:
+    - id: dbInstance
+      template:
+        apiVersion: rds.aws.upbound.io/v1beta1
+        kind: Instance
+        metadata:
+          name: ${schema.spec.name}
+          labels:
+            inari.dev/package: postgresql-aws
+        spec:
+          forProvider:
+            region: ${schema.spec.region}
+            engine: postgres
+            engineVersion: ${schema.spec.engineVersion}
+            instanceClass: ${schema.spec.instanceClass}
+            allocatedStorage: ${string(schema.spec.allocatedStorage)}
+            dbName: ${schema.spec.databaseName}
+            multiAZ: ${schema.spec.multiAZ}
+            storageEncrypted: ${schema.spec.storageEncrypted}
+            deletionProtection: ${schema.spec.deletionProtection}
+            publiclyAccessible: ${schema.spec.publiclyAccessible}
+            backupRetentionPeriod: ${schema.spec.backupRetentionPeriod}
+            vpcSecurityGroupIds: ${schema.spec.vpcSecurityGroupIds}
+            autoMinorVersionUpgrade: true
+            skipFinalSnapshot: ${!schema.spec.deletionProtection}
+          providerConfigRef:
+            name: ${schema.spec.providerConfigName}
+          writeConnectionSecretToRef:
+            name: ${schema.spec.name}-conn
+            namespace: ${schema.spec.namespace}
+      readyWhen:
+        - ${dbInstance.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}

@@ -1,0 +1,6 @@
+repoURL: https://charts.jetstack.io
+chart: cert-manager
+namespace: cert-manager
+channels:
+  stable: "v1.16.2"
+  incubating: "v1.16.2"
