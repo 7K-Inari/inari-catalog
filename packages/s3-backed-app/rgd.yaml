@@ -55,7 +55,7 @@ spec:
             bucketRef:
               name: ${bucket.metadata.name}
             versioningConfiguration:
-              status: ${schema.spec.bucketVersioning ? "Enabled" : "Suspended"}
+              status: '${schema.spec.bucketVersioning ? "Enabled" : "Suspended"}'
           providerConfigRef:
             name: ${schema.spec.providerConfigName}
     - id: bucketEncryption
@@ -141,7 +141,7 @@ spec:
           name: ${schema.spec.name}
           namespace: ${schema.spec.namespace}
           annotations:
-            eks.amazonaws.com/role-arn: ${schema.spec.createIrsaRole ? string(irsaRole.status.atProvider.arn) : schema.spec.irsaRoleArn}
+            eks.amazonaws.com/role-arn: '${schema.spec.createIrsaRole ? string(irsaRole.status.atProvider.arn) : schema.spec.irsaRoleArn}'
     - id: deployment
       template:
         apiVersion: apps/v1

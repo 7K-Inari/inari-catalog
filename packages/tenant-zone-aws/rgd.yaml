@@ -25,7 +25,7 @@ spec:
     status:
       accountId: ${account.status.atProvider.id}
       clusterName: ${eksCluster.metadata.name}
-      state: ${account.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True') ? (bootstrapRole.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True') ? (eksCluster.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True') ? "Active" : "ProvisioningCluster") : "BootstrappingTrust") : "VendingAccount"}
+      state: '${account.status.conditions.exists(c, c.type == "Ready" && c.status == "True") ? (bootstrapRole.status.conditions.exists(c, c.type == "Ready" && c.status == "True") ? (eksCluster.status.conditions.exists(c, c.type == "Ready" && c.status == "True") ? "Active" : "ProvisioningCluster") : "BootstrappingTrust") : "VendingAccount"}'
       ready: ${eksCluster.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
   resources:
     - id: account
