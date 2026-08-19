@@ -1,0 +1,7 @@
+version: 2.0.0
+channel: incubating
+type: kro-rgd
+description: >-
+  AWS RDS PostgreSQL via Crossplane provider-aws, pinned to a per-account
+  ProviderConfig (providerConfigRef) with keyless IRSA/web-identity auth.
+category: data

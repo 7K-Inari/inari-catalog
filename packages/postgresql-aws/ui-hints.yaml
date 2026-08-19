@@ -1,0 +1,56 @@
+apiVersion: inari.dev/v1alpha1
+kind: UIHints
+package: postgresql-aws
+groups:
+  - name: Identity
+    fields: [name, namespace]
+  - name: Cloud account
+    fields: [providerConfigName, region]
+  - name: Database
+    fields: [engineVersion, instanceClass, allocatedStorage, databaseName]
+  - name: Reliability
+    fields: [multiAZ, backupRetentionPeriod, deletionProtection]
+  - name: Network & security
+    fields: [storageEncrypted, publiclyAccessible, vpcSecurityGroupIds]
+fields:
+  name:
+    widget: text
+  namespace:
+    widget: namespacePicker
+  providerConfigName:
+    widget: providerConfigPicker
+    help: >-
+      Name of the Crossplane ProviderConfig for the target AWS account.
+      Created during AWS account onboarding (see README).
+  region:
+    widget: select
+    options: [us-east-1, us-west-2, eu-west-1, eu-central-1]
+  engineVersion:
+    widget: select
+    options: ["14", "15", "16"]
+  instanceClass:
+    widget: select
+    options: [db.t3.micro, db.t3.small, db.t3.medium, db.r6g.large]
+  allocatedStorage:
+    widget: number
+    help: GiB of storage.
+  databaseName:
+    widget: text
+  multiAZ:
+    widget: checkbox
+    help: Standby replica in a second AZ.
+  storageEncrypted:
+    widget: checkbox
+    help: KMS encryption at rest — keep enabled.
+  deletionProtection:
+    widget: checkbox
+    help: Blocks accidental deletion; also enables final snapshots.
+  publiclyAccessible:
+    widget: checkbox
+    help: Exposes the database publicly — normally leave disabled.
+  backupRetentionPeriod:
+    widget: number
+    help: Days of automated backups (0 disables).
+  vpcSecurityGroupIds:
+    widget: stringList
+    help: Security groups to attach; leave empty for the VPC default.
