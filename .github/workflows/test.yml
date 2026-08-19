@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 env:
-  KIND_NODE_IMAGE: kindest/node:v1.31.2@sha256:18fbefc20a7113353c7b75b5c869d7145a6abd6269154825872ed59fe13231e2
+  KIND_NODE_IMAGE: kindest/node:v1.31.2
 
 jobs:
   changes:
