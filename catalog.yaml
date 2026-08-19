@@ -2,6 +2,54 @@
 apiVersion: inari.dev/v1alpha1
 kind: CatalogIndex
 packages:
+  - name: argocd
+    version: 1.0.0
+    channel: stable
+    type: platform-app
+    description: >-
+    category: platform
+    ociRef: ghcr.io/7k-inari/catalog/argocd:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/argocd:stable
+  - name: baseline-security
+    version: 1.0.0
+    channel: stable
+    type: policy-pack
+    description: >-
+    category: policy
+    ociRef: ghcr.io/7k-inari/catalog/baseline-security:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/baseline-security:stable
+  - name: cert-manager
+    version: 1.0.0
+    channel: stable
+    type: platform-app
+    description: >-
+    category: platform
+    ociRef: ghcr.io/7k-inari/catalog/cert-manager:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/cert-manager:stable
+  - name: cost-guardrails
+    version: 1.0.0
+    channel: incubating
+    type: policy-pack
+    description: >-
+    category: policy
+    ociRef: ghcr.io/7k-inari/catalog/cost-guardrails:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/cost-guardrails:incubating
+  - name: external-secrets
+    version: 1.0.0
+    channel: stable
+    type: platform-app
+    description: >-
+    category: platform
+    ociRef: ghcr.io/7k-inari/catalog/external-secrets:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/external-secrets:stable
+  - name: keycloak
+    version: 1.0.0
+    channel: stable
+    type: platform-app
+    description: >-
+    category: platform
+    ociRef: ghcr.io/7k-inari/catalog/keycloak:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/keycloak:stable
   - name: keycloak-client
     version: 1.0.0
     channel: incubating
@@ -10,6 +58,14 @@ packages:
     category: identity
     ociRef: ghcr.io/7k-inari/catalog/keycloak-client:1.0.0
     channelRef: ghcr.io/7k-inari/catalog/keycloak-client:incubating
+  - name: monitoring-stack
+    version: 1.0.0
+    channel: incubating
+    type: platform-app
+    description: >-
+    category: platform
+    ociRef: ghcr.io/7k-inari/catalog/monitoring-stack:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/monitoring-stack:incubating
   - name: namespace-as-a-service
     version: 1.0.0
     channel: stable
@@ -18,22 +74,38 @@ packages:
     category: foundations
     ociRef: ghcr.io/7k-inari/catalog/namespace-as-a-service:1.0.0
     channelRef: ghcr.io/7k-inari/catalog/namespace-as-a-service:stable
-  - name: postgresql-aws-basic
+  - name: org-guardrails-aws
+    version: 1.0.0
+    channel: incubating
+    type: kro-rgd
+    description: >-
+    category: policy
+    ociRef: ghcr.io/7k-inari/catalog/org-guardrails-aws:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/org-guardrails-aws:incubating
+  - name: postgresql-aws
     version: 1.0.0
     channel: incubating
     type: kro-rgd
     description: >-
     category: data
-    ociRef: ghcr.io/7k-inari/catalog/postgresql-aws-basic:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/postgresql-aws-basic:incubating
+    ociRef: ghcr.io/7k-inari/catalog/postgresql-aws:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/postgresql-aws:incubating
   - name: s3-backed-app
+    version: 2.0.0
+    channel: incubating
+    type: kro-rgd
+    description: >-
+    category: data
+    ociRef: ghcr.io/7k-inari/catalog/s3-backed-app:2.0.0
+    channelRef: ghcr.io/7k-inari/catalog/s3-backed-app:incubating
+  - name: tenant-zone-aws
     version: 1.0.0
     channel: incubating
     type: kro-rgd
-    description: Application backed by an AWS S3 bucket provisioned via Crossplane.
-    category: data
-    ociRef: ghcr.io/7k-inari/catalog/s3-backed-app:1.0.0
-    channelRef: ghcr.io/7k-inari/catalog/s3-backed-app:incubating
+    description: >-
+    category: foundations
+    ociRef: ghcr.io/7k-inari/catalog/tenant-zone-aws:1.0.0
+    channelRef: ghcr.io/7k-inari/catalog/tenant-zone-aws:incubating
   - name: web-service
     version: 1.0.0
     channel: stable

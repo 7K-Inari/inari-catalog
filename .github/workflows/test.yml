@@ -1,8 +1,13 @@
 name: test
 
-# Render/validation tests: every package's RGD is applied to a kind cluster
-# with kro installed; the generated CRD schema and composed resources are
-# asserted by packages/<name>/tests/run.sh.
+# Render/validation tests, dispatched on the package type declared in
+# packages/<name>/package.yaml (`type`, default kro-rgd):
+# - kro-rgd:      kind + kro; the generated CRD schema and composed resources
+#                 are asserted by packages/<name>/tests/run.sh (Crossplane AWS
+#                 APIs are stubbed via tests/deps/ CRDs).
+# - policy-pack:  kind (>= 1.30); CEL ValidatingAdmissionPolicies are applied
+#                 and real admission denials/allows asserted.
+# - platform-app: no cluster; helm template against values-defaults.yaml.
 
 on:
   pull_request:
@@ -15,11 +20,16 @@ on:
 permissions:
   contents: read
 
+env:
+  KIND_NODE_IMAGE: kindest/node:v1.31.2@sha256:18fbefc20a7113353c7b75b5c869d7145a6abd6269154825872ed59fe13231e2
+
 jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
-      packages: ${{ steps.set.outputs.packages }}
+      rgd: ${{ steps.set.outputs.rgd }}
+      policy: ${{ steps.set.outputs.policy }}
+      app: ${{ steps.set.outputs.app }}
     steps:
       - uses: actions/checkout@v4
       - id: set
@@ -31,21 +41,34 @@ jobs:
           else
             changed=$(ls packages)
           fi
-          pkgs=$(for p in $changed; do [ -f "packages/$p/package.yaml" ] && echo "$p"; done | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          echo "packages=$pkgs" >> "$GITHUB_OUTPUT"
+          rgd='[]'; policy='[]'; app='[]'
+          for p in $changed; do
+            [ -f "packages/$p/package.yaml" ] || continue
+            ptype=$(grep -E '^type:' "packages/$p/package.yaml" | awk '{print $2}')
+            case "${ptype:-kro-rgd}" in
+              kro-rgd)      rgd=$(echo "$rgd"    | jq -c --arg p "$p" '. + [$p]') ;;
+              policy-pack)  policy=$(echo "$policy" | jq -c --arg p "$p" '. + [$p]') ;;
+              platform-app) app=$(echo "$app"    | jq -c --arg p "$p" '. + [$p]') ;;
+            esac
+          done
+          echo "rgd=$rgd" >> "$GITHUB_OUTPUT"
+          echo "policy=$policy" >> "$GITHUB_OUTPUT"
+          echo "app=$app" >> "$GITHUB_OUTPUT"
 
-  package:
+  package-kro-rgd:
     needs: changes
-    if: ${{ fromJSON(needs.changes.outputs.packages)[0] != null }}
+    if: ${{ fromJSON(needs.changes.outputs.rgd)[0] != null }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+        package: ${{ fromJSON(needs.changes.outputs.rgd) }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: helm/kind-action@v1
+        with:
+          node_image: ${{ env.KIND_NODE_IMAGE }}
 
       - name: Install kro
         run: |
@@ -68,4 +91,38 @@ jobs:
           fi
 
       - name: Run render/validation tests
+        run: packages/${{ matrix.package }}/tests/run.sh
+
+  package-policy-pack:
+    needs: changes
+    if: ${{ fromJSON(needs.changes.outputs.policy)[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.policy) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: helm/kind-action@v1
+        with:
+          node_image: ${{ env.KIND_NODE_IMAGE }}
+
+      - name: Run admission tests
+        run: packages/${{ matrix.package }}/tests/run.sh
+
+  package-platform-app:
+    needs: changes
+    if: ${{ fromJSON(needs.changes.outputs.app)[0] != null }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.app) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/setup-helm@v4
+
+      - name: Run helm render tests
         run: packages/${{ matrix.package }}/tests/run.sh
