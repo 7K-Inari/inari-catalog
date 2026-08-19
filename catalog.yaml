@@ -5,6 +5,7 @@ packages:
   - name: keycloak-client
     version: 1.0.0
     channel: incubating
+    type: kro-rgd
     description: Keycloak OIDC client in a tenant realm via Crossplane provider-keycloak.
     category: identity
     ociRef: ghcr.io/7k-inari/catalog/keycloak-client:1.0.0
@@ -12,6 +13,7 @@ packages:
   - name: namespace-as-a-service
     version: 1.0.0
     channel: stable
+    type: kro-rgd
     description: Self-service tenant namespace with quotas, defaults, and team RBAC.
     category: foundations
     ociRef: ghcr.io/7k-inari/catalog/namespace-as-a-service:1.0.0
@@ -19,6 +21,7 @@ packages:
   - name: postgresql-aws-basic
     version: 1.0.0
     channel: incubating
+    type: kro-rgd
     description: >-
     category: data
     ociRef: ghcr.io/7k-inari/catalog/postgresql-aws-basic:1.0.0
@@ -26,6 +29,7 @@ packages:
   - name: s3-backed-app
     version: 1.0.0
     channel: incubating
+    type: kro-rgd
     description: Application backed by an AWS S3 bucket provisioned via Crossplane.
     category: data
     ociRef: ghcr.io/7k-inari/catalog/s3-backed-app:1.0.0
@@ -33,6 +37,7 @@ packages:
   - name: web-service
     version: 1.0.0
     channel: stable
+    type: kro-rgd
     description: Web service with ingress, automatic DNS (ExternalDNS) and TLS (cert-manager).
     category: application
     ociRef: ghcr.io/7k-inari/catalog/web-service:1.0.0

@@ -2,9 +2,14 @@
 """Regenerate catalog.yaml from packages/*/package.yaml.
 
 The catalog index is what the inari-server Catalog Service consumes: one entry
-per package with name, version, channel, OCI ref, description, and category.
-OCI refs point at GHCR; the channel tag is published alongside the version tag
-by release-oci.yml.
+per package with name, version, channel, type, OCI ref, description, and
+category. OCI refs point at GHCR; the channel tag is published alongside the
+version tag by release-oci.yml.
+
+Package types (package.yaml `type`, default `kro-rgd`):
+- kro-rgd:      KRO ResourceGraphDefinition (rgd.yaml)
+- platform-app: Helm chart wrapper installable on the platform cluster
+- policy-pack:  admission policies (CEL ValidatingAdmissionPolicies)
 
 Dependency-free (no PyYAML): package.yaml is a flat mapping of scalar
 key: value pairs, and catalog.yaml is emitted directly.
@@ -46,6 +51,7 @@ def build(root: Path) -> list[dict]:
                     "name": name,
                     "version": version,
                     "channel": channel,
+                    "type": meta.get("type", "kro-rgd"),
                     "description": meta.get("description", ""),
                     "category": meta.get("category", "uncategorized"),
                     "ociRef": f"{OCI_BASE}/{name}:{version}",
@@ -64,7 +70,7 @@ def render(packages: list[dict]) -> str:
     ]
     for p in packages:
         lines.append(f"  - name: {p['name']}")
-        for key in ("version", "channel", "description", "category", "ociRef", "channelRef"):
+        for key in ("version", "channel", "type", "description", "category", "ociRef", "channelRef"):
             lines.append(f"    {key}: {p[key]}")
     return "\n".join(lines) + "\n"
 
