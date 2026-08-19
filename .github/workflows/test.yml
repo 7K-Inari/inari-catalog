@@ -93,6 +93,13 @@ jobs:
       - name: Run render/validation tests
         run: packages/${{ matrix.package }}/tests/run.sh
 
+      - name: Debug on failure
+        if: failure()
+        run: |
+          kubectl get rgd ${{ matrix.package }} -o jsonpath='{.status}' || true
+          echo
+          kubectl -n kro-system logs deploy/kro --tail=200 || true
+
   package-policy-pack:
     needs: changes
     if: ${{ fromJSON(needs.changes.outputs.policy)[0] != null }}
