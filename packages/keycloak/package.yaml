@@ -1,4 +1,4 @@
-version: 1.0.0
+version: 1.1.0
 channel: stable
 type: platform-app
 target: platform
@@ -6,5 +6,3 @@ description: >-
   Keycloak IAM for the platform cluster: Inari SSO, Organizations per tenant,
   OIDC issuer for agent/control-plane identity.
 category: platform
-
-# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/keycloak (see docs/release-process.md).
