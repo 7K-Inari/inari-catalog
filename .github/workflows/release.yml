@@ -31,6 +31,11 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           skip-github-pull-request: true
+          # Release mode: create the per-package tags + GitHub Releases.
+          # (PR-only mode lives in release-please.yml; skip-github-release
+          # must NOT be set in the shared config file or every component is
+          # "skipped from strategy config" here and nothing publishes.)
+          skip-github-release: false
 
       # Map the action's released paths to package metadata for the matrix.
       - name: Map released paths to packages
