@@ -30,6 +30,7 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          include-component-in-tag: true
           skip-github-pull-request: true
           # Release mode: create the per-package tags + GitHub Releases.
           # (PR-only mode lives in release-please.yml; skip-github-release
