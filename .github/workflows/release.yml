@@ -120,7 +120,9 @@ jobs:
       # Publish the catalog index as an OCI artifact so inari-server's
       # RegistryPuller (INARI_CATALOG_OCI_INDEX_REF) has a maintained ref.
       # oras uses the file basename as the layer title -> "catalog.yaml",
-      # which is exactly the layer name the puller looks up.
+      # which is exactly the layer name the puller looks up. The explicit
+      # text/yaml media type matters: without it oras labels the raw YAML
+      # layer as a tar and the puller tries to unpack it (and fails).
       - name: Push catalog index artifact
         id: index
         env:
@@ -130,7 +132,7 @@ jobs:
           echo "$ORAS_PASSWORD" | oras login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
           digest="$(oras push "${INDEX_REPO}:latest" \
             --artifact-type application/vnd.inari.catalog.index.v1+yaml \
-            catalog.yaml | tee /dev/stderr | grep -oP 'Digest: \K\S+')"
+            "catalog.yaml:text/yaml" | tee /dev/stderr | grep -oP 'Digest: \K\S+')"
           # Dated tag for traceability; :latest is the consumed ref.
           oras tag "${INDEX_REPO}@${digest}" "$(date -u +%Y%m%d-%H%M%S)"
           echo "ref=${INDEX_REPO}@${digest}" >> "$GITHUB_OUTPUT"
