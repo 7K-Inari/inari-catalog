@@ -30,11 +30,11 @@ flowchart LR
    `packages/` via `scripts/sync-release-please-config.py`, then opens/updates
    a single Release PR with per-package version bumps and CHANGELOG entries.
 2. **Manual merge** of the Release PR.
-3. **`release.yml`** (`on: push` to `main`) detects the release merge by
-   commit message (`chore: release ...`), diffs `packages/*/package.yaml` to
-   find bumped packages, creates tags `<name>-vX.Y.Z` and GitHub Releases with
-   the package's changelog section, then fans out a matrix of OCI publish
-   jobs.
+3. **`release.yml`** (`on: push` to `main`) releases every
+   `packages/<name>` whose `package.yaml` version has no `<name>-vX.Y.Z`
+   tag yet (idempotent — a partially-completed release self-heals on the
+   next push): it creates the tag and a GitHub Release with the package's
+   changelog section, then fans out a matrix of OCI publish jobs.
 4. **`release-oci.yml`** (`workflow_call` only — there are deliberately **no
    tag-push triggers** anywhere): pushes the package directory to
    `ghcr.io/7k-inari/catalog/<name>:<version>` plus the channel tag via oras,
