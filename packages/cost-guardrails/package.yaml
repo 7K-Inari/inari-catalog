@@ -1,4 +1,4 @@
-version: 1.0.0
+version: 1.1.0
 channel: incubating
 type: policy-pack
 engine: cel-vap
@@ -7,5 +7,3 @@ description: >-
   enforcement as CEL ValidatingAdmissionPolicies. Stub — parameters and
   request-time cost policies land later.
 category: policy
-
-# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/cost-guardrails (see docs/release-process.md).
