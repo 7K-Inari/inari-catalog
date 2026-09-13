@@ -12,7 +12,7 @@ Stack: YAML, CEL, Helm, KRO RGDs, OPA/Rego tests, OCI artifacts (cosign-signed)
 
 ## Conventions
 - Conventional Commits (required — release-please derives version bumps from them); per-package SemVer releases; artifacts cosign-signed (keyless, GitHub OIDC).
-- Release flow: release-please manifest mode (PR-only, `skip-github-release: true`) with one component per `packages/<name>` → per-package tags `<name>-vX.Y.Z`. Release PRs are merged manually; `release.yml` then creates tags + GitHub Releases and invokes the signed OCI publish (`workflow_call`, never tag-push triggers). See `docs/release-process.md`.
+- Release flow: release-please manifest mode (PR-only, `skip-github-release: true`) with one component per `packages/<name>` → per-package tags `<name>-vX.Y.Z`. Release PRs are merged manually; `release.yml` then creates tags + GitHub Releases, invokes the signed OCI publish (`workflow_call`, never tag-push triggers), and finally regenerates `catalog.yaml` and pushes it as the signed index artifact `ghcr.io/7k-inari/catalog/index:latest` (consumed by inari-server's `INARI_CATALOG_OCI_INDEX_REF`). See `docs/release-process.md`.
 - Every package needs `packages/<name>/package.yaml` (`version`, `channel: stable|incubating`); `validate.yml` is a required check.
 - Write tests for new behavior; keep changes minimal and focused.
 - Canonical architecture & development plan: https://github.com/7K-Inari/inari-docs/blob/main/docs/architecture/inari-platform-plan.md (section references below point into it).

@@ -7,8 +7,9 @@ independently-versioned, cosign-signed OCI artifacts on the `stable` and
 > **Status:** the `packages/<name>/` layout, channels, and the `catalog.yaml`
 > index landed in M2-W1 with five golden-path packages (see README). The
 > release automation below is fully wired for that layout; `release.yml` also
-> regenerates and commits `catalog.yaml` after each publish. End-to-end OCI
-> publishing is exercised on the first real release.
+> regenerates and commits `catalog.yaml` after each publish **and pushes it
+> as the OCI index artifact** `ghcr.io/7k-inari/catalog/index:latest` (the ref
+> inari-server's `INARI_CATALOG_OCI_INDEX_REF` consumes).
 
 ## Flow
 
@@ -21,6 +22,7 @@ flowchart LR
   E --> F[matrix: release-oci.yml workflow_call]
   F --> G[oras push to GHCR<br/>version + channel tags]
   G --> H[cosign keyless sign + verify]
+  H --> I[update-catalog: regenerate catalog.yaml<br/>oras push catalog/index:latest<br/>+ cosign sign]
 ```
 
 1. **`release-please.yml`** (`on: push` to `main`, PR-only mode,
@@ -37,6 +39,22 @@ flowchart LR
    tag-push triggers** anywhere): pushes the package directory to
    `ghcr.io/7k-inari/catalog/<name>:<version>` plus the channel tag via oras,
    cosign-signs keylessly (GitHub OIDC), and verifies the signature.
+5. **`update-catalog` job** (in `release.yml`, after all package publishes):
+   regenerates `catalog.yaml` via `scripts/build-catalog-index.py`, commits
+   it back to `main`, and pushes it as the **catalog index artifact**
+   `ghcr.io/7k-inari/catalog/index:latest` (oras file push — the layer title
+   is `catalog.yaml`, exactly what inari-server's `RegistryPuller` looks up —
+   plus a dated tag for traceability), cosign-signed keylessly. Point
+   inari-server's `INARI_CATALOG_OCI_INDEX_REF` at the `:latest` ref.
+
+### Registry auth for consumers
+
+inari-server pulls the index and package artifacts with go-containerregistry's
+`authn.DefaultKeychain`. The `ghcr.io/7k-inari/catalog/*` packages are
+**public**, so an anonymous GHCR token suffices and no docker config is
+needed in the pod. If the packages ever become private, mount a
+dockerconfigjson with a `read:packages` token into the inari-server pod and
+set `DOCKER_CONFIG` to its directory.
 
 ## Adding a package (M2-W1 contract)
 
