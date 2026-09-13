@@ -7,3 +7,5 @@ description: >-
   enforcement as CEL ValidatingAdmissionPolicies. Stub — parameters and
   request-time cost policies land later.
 category: policy
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/cost-guardrails (see docs/release-process.md).

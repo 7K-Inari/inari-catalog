@@ -6,3 +6,5 @@ description: >-
   Monitoring stack (Prometheus, Grafana, Alertmanager) for the platform
   cluster and platform apps via kube-prometheus-stack.
 category: platform
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/monitoring-stack (see docs/release-process.md).

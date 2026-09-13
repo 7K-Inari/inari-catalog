@@ -8,3 +8,5 @@ description: >-
   tenant label; read-only rootfs as warn. Distributed to ClusterSets via
   fleet rollout.
 category: policy
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/baseline-security (see docs/release-process.md).

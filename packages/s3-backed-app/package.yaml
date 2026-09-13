@@ -6,3 +6,5 @@ description: >-
   encrypted, public-access-blocked bucket pinned to a per-account
   ProviderConfig, optional in-graph IRSA role for the workload.
 category: data
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/s3-backed-app (see docs/release-process.md).

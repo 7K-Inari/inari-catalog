@@ -7,3 +7,5 @@ description: >-
   80% forecasted / 100% actual alerts. Mandatory cost tags are enforced at
   request time by tenant-zone-aws.
 category: policy
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/org-guardrails-aws (see docs/release-process.md).

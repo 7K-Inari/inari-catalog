@@ -6,3 +6,5 @@ description: >-
   External Secrets Operator on the platform cluster; namespaced SecretStores
   per tenant (§5.10) reconciled by inari-operator.
 category: platform
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/external-secrets (see docs/release-process.md).
