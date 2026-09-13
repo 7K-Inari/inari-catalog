@@ -5,3 +5,5 @@ description: >-
   AWS RDS PostgreSQL via Crossplane provider-aws, pinned to a per-account
   ProviderConfig (providerConfigRef) with keyless IRSA/web-identity auth.
 category: data
+
+# Published as a signed OCI artifact: ghcr.io/7k-inari/catalog/postgresql-aws (see docs/release-process.md).
