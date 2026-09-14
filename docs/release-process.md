@@ -17,12 +17,12 @@ independently-versioned, cosign-signed OCI artifacts on the `stable` and
 flowchart LR
   A[push to main<br/>packages/<name> change] --> B[release-please.yml<br/>opens/updates Release PR]
   B --> C[manual merge]
-  C --> D[release.yml detects release merge]
-  D --> E[per-package tags name-vX.Y.Z<br/>+ GitHub Releases]
-  E --> F[matrix: release-oci.yml workflow_call]
+  C --> D[release.yml maps untagged package versions]
+  D --> F[matrix: release-oci.yml workflow_call]
   F --> G[oras push to GHCR<br/>version + channel tags]
   G --> H[cosign keyless sign + verify]
-  H --> I[update-catalog: regenerate catalog.yaml<br/>oras push catalog/index:latest<br/>+ cosign sign]
+  H --> E[finalize: per-package tags name-vX.Y.Z<br/>+ GitHub Releases]
+  E --> I[update-catalog: regenerate catalog.yaml<br/>oras push catalog/index:latest<br/>+ cosign sign]
 ```
 
 1. **`release-please.yml`** (`on: push` to `main`, PR-only mode,
@@ -33,13 +33,17 @@ flowchart LR
 3. **`release.yml`** (`on: push` to `main`) releases every
    `packages/<name>` whose `package.yaml` version has no `<name>-vX.Y.Z`
    tag yet (idempotent — a partially-completed release self-heals on the
-   next push): it creates the tag and a GitHub Release with the package's
-   changelog section, then fans out a matrix of OCI publish jobs.
+   next push): it first fans out a matrix of OCI publish jobs, and only
+   after **every** publish succeeded creates the tag and a GitHub Release
+   with the package's changelog section (`finalize` job). A failed publish
+   leaves no tag behind, so the next push retries the release instead of
+   skipping it — and the index never references an artifact that was never
+   pushed.
 4. **`release-oci.yml`** (`workflow_call` only — there are deliberately **no
    tag-push triggers** anywhere): pushes the package directory to
    `ghcr.io/7k-inari/catalog/<name>:<version>` plus the channel tag via oras,
    cosign-signs keylessly (GitHub OIDC), and verifies the signature.
-5. **`update-catalog` job** (in `release.yml`, after all package publishes):
+5. **`update-catalog` job** (in `release.yml`, after `finalize`):
    regenerates `catalog.yaml` via `scripts/build-catalog-index.py`, commits
    it back to `main`, and pushes it as the **catalog index artifact**
    `ghcr.io/7k-inari/catalog/index:latest` (oras file push — the layer title

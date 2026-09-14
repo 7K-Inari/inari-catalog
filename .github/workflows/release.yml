@@ -3,8 +3,11 @@ name: release
 # Releases every packages/<name> whose package.yaml version has no
 # corresponding <name>-vX.Y.Z tag yet (idempotent — self-heals after a
 # partially-completed release). release-please (release-please.yml) owns
-# version bumps + CHANGELOGs via the Release PR; this workflow creates the
-# tags + GitHub Releases itself and fans out per-package OCI publish jobs.
+# version bumps + CHANGELOGs via the Release PR; this workflow fans out
+# per-package OCI publish jobs first and only creates the tags + GitHub
+# Releases once every publish succeeded — a failed publish leaves no tag
+# behind, so the next push retries the release instead of skipping it (and
+# the index never references an artifact that was never pushed).
 # (The release-please action's release mode proved unreliable here: with a
 # combined Release PR it tagged every component as bare vX.Y.Z and dropped
 # 13 of 14 releases as "Duplicate release tag".) There are intentionally NO
@@ -56,25 +59,6 @@ jobs:
           echo "releases=$releases" >> "$GITHUB_OUTPUT"
           echo "count=$(jq length <<< "$releases")" >> "$GITHUB_OUTPUT"
 
-      - name: Create tags + GitHub Releases
-        if: steps.map.outputs.count != '0'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          jq -c '.[]' <<< '${{ steps.map.outputs.releases }}' | while read -r r; do
-            name="$(jq -r .name <<< "$r")"
-            version="$(jq -r .version <<< "$r")"
-            tag="${name}-v${version}"
-            git tag "$tag"
-            git push origin "$tag"
-            # Release notes: the top (just-released) CHANGELOG section.
-            notes="$(awk '/^## \[/{c++} c==1' "packages/${name}/CHANGELOG.md" | sed '1d')"
-            gh release create "$tag" --title "$tag" --notes "${notes:-Release $tag}"
-          done
-
   publish-oci:
     needs: release
     if: needs.release.outputs.count != '0'
@@ -89,8 +73,39 @@ jobs:
       version: ${{ matrix.release.version }}
       channel: ${{ matrix.release.channel }}
 
-  update-catalog:
+  # Tags + GitHub Releases are created only AFTER every package artifact
+  # was pushed and cosign-verified. If publish-oci fails, no tag exists and
+  # the next push to main retries the release (true self-healing).
+  finalize:
     needs: [release, publish-oci]
+    if: needs.release.outputs.count != '0'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create tags + GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --tags --force origin
+          jq -c '.[]' <<< '${{ needs.release.outputs.releases }}' | while read -r r; do
+            name="$(jq -r .name <<< "$r")"
+            version="$(jq -r .version <<< "$r")"
+            tag="${name}-v${version}"
+            git tag "$tag"
+            git push origin "$tag"
+            # Release notes: the top (just-released) CHANGELOG section.
+            notes="$(awk '/^## \[/{c++} c==1' "packages/${name}/CHANGELOG.md" | sed '1d')"
+            gh release create "$tag" --title "$tag" --notes "${notes:-Release $tag}"
+          done
+
+  update-catalog:
+    needs: [release, finalize]
     if: needs.release.outputs.count != '0'
     runs-on: ubuntu-latest
     env:
