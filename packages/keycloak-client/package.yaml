@@ -1,4 +1,4 @@
-version: 1.1.0
+version: 1.2.0
 channel: incubating
 description: Keycloak OIDC client in a tenant realm via Crossplane provider-keycloak.
 category: identity
