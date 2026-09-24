@@ -16,8 +16,8 @@ spec:
       adminGroup: string | default=""
       viewerGroup: string | default=""
     status:
-      namespace: string
-      ready: boolean
+      namespace: ${ns.metadata.name}
+      ready: ${has(ns.status.phase) && ns.status.phase == 'Active'}
   resources:
     - id: ns
       template:

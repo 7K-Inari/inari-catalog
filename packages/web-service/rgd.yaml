@@ -21,8 +21,8 @@ spec:
       cpuLimit: string | default="500m"
       memoryLimit: string | default="512Mi"
     status:
-      url: string
-      ready: boolean
+      url: ${ingress.spec.rules[0].host}
+      ready: ${has(deployment.status.readyReplicas) && has(deployment.status.replicas) && deployment.status.readyReplicas == deployment.status.replicas}
   resources:
     - id: deployment
       template:
