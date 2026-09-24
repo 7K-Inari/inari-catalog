@@ -57,6 +57,25 @@ def check_rgd(path: Path, errors: list[str]) -> None:
         errors.append(f"{path}: no CEL expressions found — is this an RGD?")
     if depth != 0:
         errors.append(f"{path}: unbalanced CEL expressions (depth {depth})")
+    # KRO rejects status fields without CEL expressions ("status fields
+    # without expressions are not supported"). The schema.status block holds
+    # one "<name>: <type-or-expression>" per line.
+    in_status = False
+    for line in text.splitlines():
+        if re.match(r"^\s{4}status:\s*$", line):
+            in_status = True
+            continue
+        if in_status:
+            if re.match(r"^\s{4}\S", line):
+                break  # left the status block
+            m = re.match(r"^\s+(\w[\w-]*)\s*:\s*(.+)$", line)
+            if m and not line.strip().startswith("#"):
+                name, value = m.group(1), m.group(2)
+                if "${" not in value:
+                    errors.append(
+                        f"{path}: status field '{name}' has no CEL expression — "
+                        "KRO rejects it at CRD build time"
+                    )
 
 
 def main() -> int:

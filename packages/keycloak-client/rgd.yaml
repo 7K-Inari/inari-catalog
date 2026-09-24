@@ -15,8 +15,8 @@ spec:
       publicClient: boolean | default=false
       serviceAccountsEnabled: boolean | default=false
     status:
-      clientId: string
-      ready: boolean
+      clientId: ${client.spec.forProvider.clientId}
+      ready: ${has(client.status.conditions) && client.status.conditions.exists(c, c.type == 'Ready' && c.status == 'True')}
   resources:
     - id: client
       template:
