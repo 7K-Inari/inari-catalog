@@ -1,0 +1,129 @@
+name: edge
+
+# Per-merge edge releases: every push to main publishes every catalog
+# package whose PENDING version (from the open Release PR's manifest) is
+# ahead of the version on main as <pending>-edge.<shortsha> OCI artifacts
+# (cosign-signed, NO channel tags — channels only move on stable releases),
+# then cuts one consolidated GitHub prerelease. Skipped on release merges —
+# release.yml covers that commit.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  id-token: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/7k-inari/catalog
+
+concurrency:
+  group: edge-main
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.gate.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Skip on release merges
+        id: gate
+        run: |
+          set -euo pipefail
+          msg="$(git log -1 --pretty=%s)"
+          parent2=""
+          if [ "$(git rev-list --parents -n1 HEAD | wc -w)" -gt 2 ]; then
+            parent2="$(git log -1 --pretty=%s HEAD^2)"
+          fi
+          if echo "$msg" | grep -qiE '^chore(\(.*\))?: release' \
+             || echo "$parent2" | grep -qiE '^chore(\(.*\))?: release'; then
+            echo "release merge detected ($msg) — skipping edge"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  resolve:
+    needs: gate
+    if: needs.gate.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.map.outputs.packages }}
+      count: ${{ steps.map.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Map packages with a pending version bump
+        id: map
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          packages="[]"
+          for pkg in packages/*/; do
+            [ -f "$pkg/package.yaml" ] || continue
+            name="$(basename "$pkg")"
+            manifest_path="packages/${name}"
+            current="$(jq -r --arg p "$manifest_path" '.[$p] // empty' .release-please-manifest.json)"
+            pending="$(RAW=1 scripts/resolve-edge-version.sh "$manifest_path")"
+            edge="${pending}-edge.${GITHUB_SHA:0:7}"
+            packages="$(jq -c --arg name "$name" --arg path "$manifest_path" --arg version "$edge" \
+              '. + [{name: $name, path: $path, version: $version}]' <<< "$packages")"
+            echo "$name -> $edge (current $current)"
+          done
+          echo "packages=$packages" >> "$GITHUB_OUTPUT"
+          echo "count=$(jq length <<< "$packages")" >> "$GITHUB_OUTPUT"
+
+  publish-oci:
+    needs: resolve
+    if: needs.resolve.outputs.count != '0'
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.resolve.outputs.packages) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: sigstore/cosign-installer@v3
+
+      - uses: oras-project/setup-oras@v1
+
+      - name: Package and push edge OCI artifact (no channel tags)
+        id: push
+        env:
+          ORAS_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: packages/${{ matrix.package.name }}
+        run: |
+          set -euo pipefail
+          echo "$ORAS_PASSWORD" | oras login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+          repo="${IMAGE_PREFIX}/${{ matrix.package.name }}"
+          digest="$(oras push "${repo}:${{ matrix.package.version }}" \
+            --artifact-type application/vnd.inari.catalog.package.v1+yaml \
+            . | tee /dev/stderr | grep -oP 'Digest: \K\S+')"
+          echo "ref=${repo}@${digest}" >> "$GITHUB_OUTPUT"
+
+      - name: Cosign sign (keyless)
+        run: cosign sign --yes "${{ steps.push.outputs.ref }}"
+
+  prerelease:
+    needs: [resolve, publish-oci]
+    if: needs.resolve.outputs.count != '0'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create consolidated edge prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGES: ${{ needs.resolve.outputs.packages }}
+        run: |
+          tag="edge-${GITHUB_SHA:0:7}"
+          notes="$(jq -r '.[] | "- \(.name): oci://ghcr.io/7k-inari/catalog/\(.name):\(.version)"' <<< "$PACKAGES")"
+          gh release create "$tag" \
+            --prerelease \
+            --title "edge ${GITHUB_SHA:0:7}" \
+            --notes "$(printf 'Edge build from %s. Packages:\n%s\n\nSuperseded by the next stable <package>-vX.Y.Z releases.' "$GITHUB_SHA" "$notes")"
