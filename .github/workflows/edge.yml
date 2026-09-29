@@ -2,7 +2,7 @@ name: edge
 
 # Per-merge edge releases: every push to main publishes every catalog
 # package whose PENDING version (from the open Release PR's manifest) is
-# ahead of the version on main as <pending>-edge.<shortsha> OCI artifacts
+# ahead of the version on main as <pending>-<shortsha> OCI artifacts
 # (cosign-signed, NO channel tags — channels only move on stable releases),
 # then cuts one consolidated GitHub prerelease. Skipped on release merges —
 # release.yml covers that commit.
@@ -71,7 +71,7 @@ jobs:
             manifest_path="packages/${name}"
             current="$(jq -r --arg p "$manifest_path" '.[$p] // empty' .release-please-manifest.json)"
             pending="$(RAW=1 scripts/resolve-edge-version.sh "$manifest_path")"
-            edge="${pending}-edge.${GITHUB_SHA:0:7}"
+            edge="${pending}-${GITHUB_SHA:0:7}"
             packages="$(jq -c --arg name "$name" --arg path "$manifest_path" --arg version "$edge" \
               '. + [{name: $name, path: $path, version: $version}]' <<< "$packages")"
             echo "$name -> $edge (current $current)"
@@ -116,14 +116,25 @@ jobs:
     if: needs.resolve.outputs.count != '0'
     runs-on: ubuntu-latest
     steps:
-      - name: Create consolidated edge prerelease
+      - uses: actions/checkout@v4
+      - name: Move the consolidated edge channel release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PACKAGES: ${{ needs.resolve.outputs.packages }}
+        # The catalog versions per package, so the per-commit immutables are
+        # the package OCI tags (<pending>-<sha>); the repo-level prerelease
+        # is the moving `edge` channel listing them.
         run: |
-          tag="edge-${GITHUB_SHA:0:7}"
-          notes="$(jq -r '.[] | "- \(.name): oci://ghcr.io/7k-inari/catalog/\(.name):\(.version)"' <<< "$PACKAGES")"
-          gh release create "$tag" \
-            --prerelease \
-            --title "edge ${GITHUB_SHA:0:7}" \
-            --notes "$(printf 'Edge build from %s. Packages:\n%s\n\nSuperseded by the next stable <package>-vX.Y.Z releases.' "$GITHUB_SHA" "$notes")"
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -f edge "$GITHUB_SHA"
+          git push -f origin refs/tags/edge
+          list="$(jq -r '.[] | "- \(.name): oci://ghcr.io/7k-inari/catalog/\(.name):\(.version)"' <<< "$PACKAGES")"
+          title="edge (${GITHUB_SHA:0:7})"
+          notes="$(printf 'Latest edge build from %s.\n\nPackages:\n%s\n\nSuperseded by the next stable <package>-vX.Y.Z releases.' "$GITHUB_SHA" "$list")"
+          if gh release view edge > /dev/null 2>&1; then
+            gh release edit edge --prerelease --title "$title" --notes "$notes"
+          else
+            gh release create edge --prerelease --target "$GITHUB_SHA" --title "$title" --notes "$notes"
+          fi
