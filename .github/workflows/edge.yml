@@ -29,7 +29,7 @@ jobs:
     outputs:
       skip: ${{ steps.gate.outputs.skip }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 2
       - name: Skip on release merges
@@ -57,7 +57,7 @@ jobs:
       packages: ${{ steps.map.outputs.packages }}
       count: ${{ steps.map.outputs.count }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Map packages with a pending version bump
         id: map
         env:
@@ -88,11 +88,11 @@ jobs:
         package: ${{ fromJSON(needs.resolve.outputs.packages) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: sigstore/cosign-installer@v3
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
 
-      - uses: oras-project/setup-oras@v1
+      - uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1
 
       - name: Package and push edge OCI artifact (no channel tags)
         id: push
@@ -116,7 +116,7 @@ jobs:
     if: needs.resolve.outputs.count != '0'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Move the consolidated edge channel release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
