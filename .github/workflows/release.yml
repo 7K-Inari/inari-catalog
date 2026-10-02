@@ -31,7 +31,7 @@ jobs:
       count: ${{ steps.map.outputs.count }}
       releases: ${{ steps.map.outputs.releases }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -81,7 +81,7 @@ jobs:
     if: needs.release.outputs.count != '0'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -112,7 +112,7 @@ jobs:
       REGISTRY: ghcr.io
       INDEX_REPO: ghcr.io/7k-inari/catalog/index
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Regenerate catalog.yaml index
         run: |
@@ -128,9 +128,9 @@ jobs:
           git commit -m "chore: regenerate catalog.yaml index [skip ci]"
           git push origin main
 
-      - uses: sigstore/cosign-installer@v3
+      - uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
 
-      - uses: oras-project/setup-oras@v1
+      - uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1
 
       # Publish the catalog index as an OCI artifact so inari-server's
       # RegistryPuller (INARI_CATALOG_OCI_INDEX_REF) has a maintained ref.
