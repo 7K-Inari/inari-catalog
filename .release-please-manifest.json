@@ -3,6 +3,7 @@
   "packages/baseline-security": "1.3.0",
   "packages/cert-manager": "1.3.0",
   "packages/cost-guardrails": "1.3.0",
+  "packages/external-dns": "1.0.0",
   "packages/external-secrets": "1.3.0",
   "packages/keycloak": "1.3.0",
   "packages/keycloak-client": "1.3.0",
