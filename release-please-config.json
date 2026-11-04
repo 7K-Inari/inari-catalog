@@ -42,6 +42,15 @@
         "package.yaml"
       ]
     },
+    "packages/external-dns": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        "package.yaml"
+      ]
+    },
     "packages/external-secrets": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
