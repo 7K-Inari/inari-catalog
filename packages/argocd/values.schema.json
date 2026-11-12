@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Argo CD addon values",
+  "description": "Curated values schema for the argocd platform addon. The upstream argo-cd Helm chart ships no values.schema.json, so this file covers the Inari-managed surface (HA topology, metrics, ingress, RBAC, and the extensions the platform toggles). It is deliberately permissive about chart keys not listed here.",
+  "type": "object",
+  "properties": {
+    "server": {
+      "type": "object",
+      "properties": {
+        "replicas": { "type": "integer", "minimum": 1 },
+        "ingress": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "ingressClassName": { "type": "string" },
+            "hosts": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "metrics": { "$ref": "#/$defs/metrics" }
+      }
+    },
+    "repoServer": {
+      "type": "object",
+      "properties": {
+        "replicas": { "type": "integer", "minimum": 1 },
+        "metrics": { "$ref": "#/$defs/metrics" }
+      }
+    },
+    "controller": {
+      "type": "object",
+      "properties": {
+        "replicas": { "type": "integer", "minimum": 1 },
+        "metrics": { "$ref": "#/$defs/metrics" }
+      }
+    },
+    "applicationSet": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "replicas": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "redis-ha": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "configs": {
+      "type": "object",
+      "properties": {
+        "cm": { "type": "object" },
+        "rbac": {
+          "type": "object",
+          "properties": {
+            "policy.default": { "type": "string" },
+            "policy.csv": { "type": "string" },
+            "scopes": { "type": "string" }
+          }
+        },
+        "params": { "type": "object" }
+      }
+    },
+    "dex": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "serviceMonitor": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,8 @@ channel: stable
 type: platform-app
 target: platform
 description: >-
-  cert-manager on the platform cluster: TLS issuers for control-plane and
-  platform-app ingress; reconciled by inari-operator per §5.6.
+  cert-manager as a first-class cluster addon: X.509 certificate management.
+  Installed, adopted, and version/values-managed via the cluster addons
+  surface (cluster_addons); issuers ship as native ClusterIssuer manifests in
+  the tenant state repo.
 category: platform
