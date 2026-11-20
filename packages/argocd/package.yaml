@@ -3,6 +3,8 @@ channel: stable
 type: platform-app
 target: platform
 description: >-
-  ArgoCD on the platform cluster: tenant-local GitOps root apps and shared
-  ArgoCD projects (platform-scoped, reconciled by inari-operator, §5.6).
+  ArgoCD as a first-class cluster addon: declarative GitOps continuous
+  delivery. Installed, adopted, and version/values-managed via the cluster
+  addons surface (cluster_addons); AppProjects ship as native manifests in
+  the baseline/team repos.
 category: platform

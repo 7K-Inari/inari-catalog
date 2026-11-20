@@ -1,0 +1,10 @@
+version: 1.0.0
+channel: stable
+type: platform-app
+target: platform
+description: >-
+  ExternalDNS as a first-class cluster addon: synchronizes Services and
+  Ingresses with DNS providers. Installed, adopted, and version/values-managed
+  via the cluster addons surface (cluster_addons); DNS records ship as native
+  DNSEndpoint manifests in the tenant state repo.
+category: platform

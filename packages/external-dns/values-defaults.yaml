@@ -1,0 +1,10 @@
+provider:
+  name: aws
+policy: upsert-only
+registry: txt
+interval: 1m
+sources:
+  - service
+  - ingress
+serviceMonitor:
+  enabled: true
