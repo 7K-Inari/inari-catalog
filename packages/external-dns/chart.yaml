@@ -1,0 +1,6 @@
+repoURL: https://kubernetes-sigs.github.io/external-dns/
+chart: external-dns
+namespace: external-dns
+channels:
+  stable: "1.15.2"
+  incubating: "1.15.2"
